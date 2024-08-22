@@ -1,6 +1,7 @@
 from multiprocessing import Process
 import os
 from pathlib import Path
+import threading
 import time
 import numpy as np
 
@@ -45,16 +46,17 @@ class FrankaServer:
         self.state_timer = FrequencyTimer(STATE_FREQ)
 
         # start publisher and subscriber
-        publisher_process = Process(target=self.publish_state)
-        subscriber_process = Process(target=self.control_robot)
+        publisher_thread = threading.Thread(target=self.publish_state, daemon=True)
+        subscriber_thread = threading.Thread(target=self.control_robot, daemon=True)
 
         self._robot.reset_robot()
 
-        publisher_process.start()
-        subscriber_process.start()
+        # self.publish_state()
+        publisher_thread.start()
+        # subscriber_thread.start()
 
-        publisher_process.join()
-        subscriber_process.join()
+        publisher_thread.join()
+        # subscriber_process.join()
 
     def publish_state(self):
         notify_component_start(component_name="Franka State Publisher")
@@ -71,6 +73,7 @@ class FrankaServer:
                         timestamp=time.time(),
                     )
                     self.state_publisher.pub_keypoints(state, "state")
+                    print(f"published {state}")
                 self.state_timer.end_loop()
         except KeyboardInterrupt:
             pass

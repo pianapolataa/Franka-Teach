@@ -9,13 +9,13 @@ timer = FrequencyTimer(100)
 publisher = ZMQKeypointPublisher("localhost", 8900)
 
 while True:
-  timer.start_loop()
-  state = FrankaState(
-    pos = np.random.rand(3),
-    quat = np.random.rand(4),
-    gripper = 0,
-    timestamp = time.time()
-  )
-  publisher.pub_keypoints(state, "state")
-  timer.end_loop()
-
+    timer.start_loop()
+    state = FrankaState(
+        pos=np.random.rand(3).astype(np.float32),
+        quat=np.random.rand(4).astype(np.float32),
+        gripper=0,
+        timestamp=time.time(),
+    )
+    publisher.pub_keypoints(state, "state")
+    print(f"Published {state}")
+    timer.end_loop()
