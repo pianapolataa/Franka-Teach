@@ -2,13 +2,10 @@ import numpy as np
 
 from frankateach.network import ZMQCameraPublisher
 from frankateach.utils import FrequencyTimer, notify_component_start
+from frankateach.constants import CAM_FPS, DEPTH_PORT_OFFSET
 
 import pyrealsense2 as rs
 import time
-
-
-CAM_FPS = 30
-DEPTH_PORT_OFFSET = 1000  # TODO: check this
 
 
 class RealsenseCamera:
