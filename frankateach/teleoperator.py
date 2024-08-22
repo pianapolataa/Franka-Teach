@@ -81,11 +81,9 @@ class FrankaOperator:
             )
             self.is_first_frame = False
         if self.controller_state.right_a:
-            print("Starting teleop")
             self.start_teleop = True
             self.init_affine = self.controller_state.right_affine
         if self.controller_state.right_b:
-            print("Stopping teleop")
             self.start_teleop = False
             self.init_affine = None
             # receive the robot state

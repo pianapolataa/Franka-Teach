@@ -5,7 +5,7 @@ VR_TCP_HOST = "10.19.195.45"
 VR_TCP_PORT = 5555
 VR_CONTROLLER_TOPIC = b"oculus_controller"
 
-GRIPPER_OPEN = 0
+GRIPPER_OPEN = -1
 GRIPPER_CLOSE = 1
 H_R_V = np.array([[1, 0, 0, 0], [0, 0, 1, 0], [0, -1, 0, 0], [0, 0, 0, 1]])
 H_R_V_star = np.array([[-1, 0, 0, 0], [0, 0, 1, 0], [0, -1, 0, 0], [0, 0, 0, 1]])

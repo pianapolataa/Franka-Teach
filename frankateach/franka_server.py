@@ -94,7 +94,7 @@ class FrankaServer:
 
                 franka_control: FrankaAction = pickle.loads(self.socket.recv())
                 if franka_control.reset:
-                    self._robot.reset_joints()
+                    self._robot.reset_joints(gripper_open=True)
                     time.sleep(1)
                 else:
                     self._robot.osc_move(
