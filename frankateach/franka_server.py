@@ -15,7 +15,7 @@ from deoxys.utils.config_utils import (
 )
 
 from frankateach.utils import FrequencyTimer, notify_component_start
-from frankateach.network import ZMQKeypointPublisher, ZMQKeypointSubscriber
+from frankateach.network import ZMQKeypointPublisher
 from frankateach.messages import FrankaAction, FrankaState
 from frankateach.constants import (
     VR_FREQ,
