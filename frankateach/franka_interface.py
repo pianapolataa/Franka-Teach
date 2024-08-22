@@ -12,9 +12,9 @@ from deoxys.utils.config_utils import (
     verify_controller_config,
 )
 
-from frankapy.utils import FrequencyTimer, notify_component_start
-from frankapy.network import ZMQKeypointPublisher, ZMQKeypointSubscriber
-from frankapy.messages import FrankaAction, FrankaState
+from frankateach.utils import FrequencyTimer, notify_component_start
+from frankateach.network import ZMQKeypointPublisher, ZMQKeypointSubscriber
+from frankateach.messages import FrankaAction, FrankaState
 
 TRANSLATIONAL_POSE_VELOCITY_SCALE = 5
 ROTATIONAL_POSE_VELOCITY_SCALE = 0.75
@@ -23,7 +23,7 @@ TRANSLATION_VELOCITY_LIMIT = 1
 VR_FREQ = 90
 STATE_FREQ = 100
 
-CONFIG_ROOT = Path(__file__).parent
+CONFIG_ROOT = Path(__file__).parent / "configs"
 
 
 class FrankaServer:
@@ -104,7 +104,7 @@ class Robot(FrankaInterface):
         )
         self.velocity_controller_cfg = verify_controller_config(
             YamlConfig(
-                os.path.join(CONFIG_ROOT, "osc-pose-controller-velocity.yml")
+                os.path.join(CONFIG_ROOT, "osc-pose-controller.yml")
             ).as_easydict()
         )
 
@@ -208,3 +208,12 @@ class Robot(FrankaInterface):
             if end_time - start_time > timeout:
                 break
         return True
+
+
+if __name__ == "__main__":
+    franka_server = FrankaServer(
+        cfg="deoxys_right.yml",
+        host="localhost",
+        state_port=8900,
+        control_port=8901,
+    )
