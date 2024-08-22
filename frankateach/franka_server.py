@@ -93,8 +93,6 @@ class FrankaServer:
         notify_component_start(component_name="Franka Control Subscriber")
         try:
             while True:
-                self.control_timer.start_loop()
-
                 franka_control: FrankaAction = pickle.loads(self.socket.recv())
                 if franka_control.reset:
                     self._robot.reset_joints(gripper_open=True)
@@ -105,7 +103,6 @@ class FrankaServer:
                     )
                 self.socket.send(b"ok")
 
-                self.control_timer.end_loop()
         except KeyboardInterrupt:
             pass
         finally:
