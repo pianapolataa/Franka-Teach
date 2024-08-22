@@ -7,6 +7,7 @@ class FrankaState:
     pos: np.ndarray
     quat: np.ndarray
     gripper: np.ndarray
+    timestamp: float
 
 
 @dataclass
@@ -15,3 +16,4 @@ class FrankaAction:
     quat: np.ndarray
     gripper: np.ndarray
     reset: bool
+    timestamp: float

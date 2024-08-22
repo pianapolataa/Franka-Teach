@@ -38,7 +38,7 @@ class FrankaServer:
     ):
         self._robot = Robot(cfg, control_freq)
         self.state_publisher = ZMQKeypointPublisher(host, state_port)
-        self.control_subscriber = ZMQKeypointSubscriber(host, control_port)
+        self.control_subscriber = ZMQKeypointSubscriber(host, control_port, "control")
 
         self.control_timer = FrequencyTimer(control_freq)
         self.state_timer = FrequencyTimer(STATE_FREQ)
@@ -46,6 +46,8 @@ class FrankaServer:
         # start publisher and subscriber
         publisher_process = Process(target=self.publish_state)
         subscriber_process = Process(target=self.control_robot)
+
+        self._robot.reset_robot()
 
         publisher_process.start()
         subscriber_process.start()
@@ -58,21 +60,21 @@ class FrankaServer:
         try:
             while True:
                 self.state_timer.start_loop()
-                quat, pos = self._robot.last_eef_rot_and_pos
-                gripper = self._robot.last_gripper_q
+                quat, pos = self._robot.last_eef_quat_and_pos
+                gripper = self._robot.last_gripper_action
                 if quat is not None and pos is not None and gripper is not None:
                     state = FrankaState(
                         pos=pos.flatten().astype(np.float32),
                         quat=quat.flatten().astype(np.float32),
-                        gripper=gripper.flatten().astype(np.float32),
+                        gripper=gripper,
                         timestamp=time.time(),
                     )
-                    self.state_publisher.pub_keypoints(state, topic_name="robot_state")
+                    self.state_publisher.pub_keypoints(state, "state")
                 self.state_timer.end_loop()
         except KeyboardInterrupt:
             pass
         finally:
-            self.state_publisher.close()
+            self.state_publisher.stop()
 
     def control_robot(self):
         notify_component_start(component_name="Franka Control Subscriber")
@@ -80,7 +82,7 @@ class FrankaServer:
             while True:
                 self.control_timer.start_loop()
 
-                franka_control: FrankaAction = self.control_subscriber.recv_keypoint()
+                franka_control: FrankaAction = self.control_subscriber.recv_keypoints()
                 if franka_control.reset:
                     self._robot.reset_joints()
                 else:
@@ -92,7 +94,7 @@ class FrankaServer:
         except KeyboardInterrupt:
             pass
         finally:
-            self.control_subscriber.close()
+            self.control_subscriber.stop()
 
 
 class Robot(FrankaInterface):
@@ -108,13 +110,11 @@ class Robot(FrankaInterface):
             ).as_easydict()
         )
 
-        self.reset_robot()
-
     def reset_robot(self):
         self.reset()
 
         print("Waiting for the robot to connect...")
-        while len(self._state_buffer) > 0:
+        while len(self._state_buffer) == 0:
             time.sleep(0.01)
 
         print("Franka is connected")
@@ -147,9 +147,7 @@ class Robot(FrankaInterface):
             action_axis_angle, -ROTATION_VELOCITY_LIMIT, ROTATION_VELOCITY_LIMIT
         )
 
-        action = (
-            action_pos.tolist() + action_axis_angle.tolist() + gripper_state.tolist()
-        )
+        action = action_pos.tolist() + action_axis_angle.tolist() + [gripper_state]
 
         self.control(
             controller_type="OSC_POSE",
