@@ -18,6 +18,9 @@ from frankateach.utils import FrequencyTimer, notify_component_start
 from frankateach.network import ZMQKeypointPublisher
 from frankateach.messages import FrankaAction, FrankaState
 from frankateach.constants import (
+    CONTROL_PORT,
+    STATE_PORT,
+    STATE_TOPIC,
     VR_FREQ,
     STATE_FREQ,
     TRANSLATIONAL_POSE_VELOCITY_SCALE,
@@ -79,7 +82,7 @@ class FrankaServer:
                         gripper=gripper,
                         timestamp=time.time(),
                     )
-                    self.state_publisher.pub_keypoints(state, "state")
+                    self.state_publisher.pub_keypoints(state, STATE_TOPIC)
                 self.state_timer.end_loop()
         except KeyboardInterrupt:
             pass
@@ -225,8 +228,8 @@ def main():
     fs = FrankaServer(
         cfg="deoxys_right.yml",
         host="localhost",
-        state_port=8900,
-        control_port=8901,
+        state_port=STATE_PORT,
+        control_port=CONTROL_PORT,
     )
 
     fs.init_server()

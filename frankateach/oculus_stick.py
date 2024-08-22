@@ -1,4 +1,5 @@
 from frankateach.constants import (
+    VR_CONTROLLER_STATE_PORT,
     VR_FREQ,
     VR_TCP_HOST,
     VR_TCP_PORT,
@@ -59,7 +60,7 @@ class OculusVRStickDetector:
 
 
 def main():
-    detector = OculusVRStickDetector("localhost", 8889)
+    detector = OculusVRStickDetector("localhost", VR_CONTROLLER_STATE_PORT)
     detector.stream()
 
 

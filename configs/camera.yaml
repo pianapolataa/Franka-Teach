@@ -1,0 +1,13 @@
+cam_serial_numbers: 
+  - "147322072736"
+  - "028522071213"
+  - "147322072546"
+  - "152222073516"
+
+cam_config:
+    width: 1280
+    height: 720
+    fps: 30
+    processing_preset: 1
+    depth: False 
+

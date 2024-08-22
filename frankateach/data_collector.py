@@ -1,4 +1,3 @@
-import argparse
 from pathlib import Path
 import pickle
 import cv2
@@ -6,7 +5,7 @@ import time
 import threading
 
 from frankateach.network import ZMQCameraSubscriber, ZMQKeypointSubscriber
-from frankateach.utils import FrequencyTimer, notify_component_start
+from frankateach.utils import notify_component_start
 
 
 from frankateach.constants import (
@@ -16,10 +15,7 @@ from frankateach.constants import (
     STATE_PORT,
     CONTROL_PORT,
     DEPTH_PORT_OFFSET,
-    VR_FREQ,
-    STATE_FREQ,
     STATE_TOPIC,
-    CAM_FPS,
 )
 
 
@@ -28,7 +24,8 @@ class DataCollector:
         self,
         storage_path: str,
         demo_num: int,
-        cams=[],  # cam config dictionaries
+        cams=[],  # cam serial numbers
+        cam_config=None,  # cam config
         collect_state=False,
         collect_control=False,
         collect_depth=False,
@@ -50,11 +47,6 @@ class DataCollector:
         if collect_state:
             self.state_subscriber = ZMQKeypointSubscriber(HOST, STATE_PORT, STATE_TOPIC)
 
-        if collect_control:
-            self.control_subscriber = ZMQKeypointSubscriber(
-                HOST, CONTROL_PORT, CONTROL_TOPIC
-            )
-
         # Create the storage directory
         self.storage_path = Path(storage_path) / f"demonstration_{demo_num}"
         self.storage_path.mkdir(parents=True, exist_ok=True)
@@ -63,7 +55,7 @@ class DataCollector:
         self.run_event.set()
         self.threads = []
 
-        for cam_idx, cam_config in enumerate(cams):
+        for cam_idx, _ in enumerate(cams):
             self.threads.append(
                 threading.Thread(
                     target=self.save_rgb,
@@ -83,11 +75,6 @@ class DataCollector:
 
         if collect_state:
             self.threads.append(threading.Thread(target=self.save_states, daemon=True))
-
-        if collect_control:
-            self.threads.append(
-                threading.Thread(target=self.save_controls, daemon=True)
-            )
 
     def start(self):
         for thread in self.threads:
@@ -118,7 +105,6 @@ class DataCollector:
         timestamps = []
         metadata = dict(
             cam_idx=cam_idx,
-            cam_serial_num=cam_config.cam_serial_num,
             width=cam_config.width,
             height=cam_config.height,
             fps=cam_config.fps,
@@ -163,39 +149,18 @@ class DataCollector:
             pickle.dump(states, f)
         self.state_subscriber.stop()
 
-    def save_controls(self):
-        notify_component_start(component_name="Control Collector")
 
-        filename = self.storage_path / "controls.pkl"
-        controls = []
+#  def save_controls(self):
+#      notify_component_start(component_name="Control Collector")
 
-        while self.run_event.is_set():
-            control = self.control_subscriber.recv_keypoints()
-            controls.append(control)
+#      filename = self.storage_path / "controls.pkl"
+#      controls = []
 
-        with open(filename, "wb") as f:
-            pickle.dump(controls, f)
-        self.control_subscriber.stop()
+#      while self.run_event.is_set():
+#          control = self.control_subscriber.recv_keypoints()
+#          print(control)
+#          controls.append(control)
 
-
-def main():
-    cam_serial_nums = ["", "", "", ""]
-    data_collector = DataCollector(
-        storage_path="extracted_data/test",
-        demo_num=0,
-        cams=[
-            argparse.Namespace(
-                cam_serial_num=cam_serial_nums[i],
-                width=1280,
-                height=720,
-                fps=30,
-            )
-            for i in range(len(cam_serial_nums))
-        ],
-        collect_state=True,
-    )
-    data_collector.start()
-
-
-if __name__ == "__main__":
-    main()
+#      with open(filename, "wb") as f:
+#          pickle.dump(controls, f)
+#      self.control_subscriber.stop()

@@ -3,7 +3,10 @@ import zmq
 from frankateach.utils import FrequencyTimer, notify_component_start
 from frankateach.network import ZMQKeypointSubscriber
 from frankateach.constants import (
+    CONTROL_PORT,
+    VR_CONTROLLER_STATE_PORT,
     H_R_V,
+    STATE_PORT,
     H_R_V_star,
     ROBOT_WORKSPACE_MIN,
     ROBOT_WORKSPACE_MAX,
@@ -149,9 +152,8 @@ class FrankaOperator:
             timestamp=time.time(),
         )
 
-        if self.start_teleop:
-            self.socket.send(bytes(pickle.dumps(action, protocol=-1)))
-            ok_msg = self.socket.recv()
+        self.socket.send(bytes(pickle.dumps(action, protocol=-1)))
+        ok_msg = self.socket.recv()
 
     # def save_states(self):
     #     teleop_time = self._timestamps[-1] - self._timestamps[0]
@@ -196,7 +198,10 @@ class FrankaOperator:
 
 def main():
     operator = FrankaOperator(
-        "localhost", controller_state_port=8889, state_port=8900, control_port=8901
+        "localhost",
+        controller_state_port=VR_CONTROLLER_STATE_PORT,
+        state_port=STATE_PORT,
+        control_port=CONTROL_PORT,
     )
     operator.stream()
 
