@@ -1,4 +1,3 @@
-from multiprocessing import Process
 import os
 from pathlib import Path
 import threading
@@ -45,18 +44,20 @@ class FrankaServer:
         self.control_timer = FrequencyTimer(control_freq)
         self.state_timer = FrequencyTimer(STATE_FREQ)
 
-        # start publisher and subscriber
+    def init_server(self):
+        # connect to robot
+        print("Starting Franka server...")
+        self._robot.reset_robot()
+
+        # start state publisher and control subscriber
         publisher_thread = threading.Thread(target=self.publish_state, daemon=True)
         subscriber_thread = threading.Thread(target=self.control_robot, daemon=True)
 
-        self._robot.reset_robot()
-
-        # self.publish_state()
         publisher_thread.start()
-        # subscriber_thread.start()
+        subscriber_thread.start()
 
         publisher_thread.join()
-        # subscriber_process.join()
+        subscriber_thread.join()
 
     def publish_state(self):
         notify_component_start(component_name="Franka State Publisher")
@@ -73,7 +74,6 @@ class FrankaServer:
                         timestamp=time.time(),
                     )
                     self.state_publisher.pub_keypoints(state, "state")
-                    print(f"published {state}")
                 self.state_timer.end_loop()
         except KeyboardInterrupt:
             pass
@@ -86,13 +86,15 @@ class FrankaServer:
             while True:
                 self.control_timer.start_loop()
 
+                print("waiting for control")
                 franka_control: FrankaAction = self.control_subscriber.recv_keypoints()
-                if franka_control.reset:
-                    self._robot.reset_joints()
-                else:
-                    self._robot.osc_move(
-                        franka_control.pos, franka_control.quat, franka_control.gripper
-                    )
+                print(franka_control)
+                # if franka_control.reset:
+                #     self._robot.reset_joints()
+                # else:
+                #     self._robot.osc_move(
+                #         franka_control.pos, franka_control.quat, franka_control.gripper
+                #     )
 
                 self.control_timer.end_loop()
         except KeyboardInterrupt:
@@ -212,10 +214,16 @@ class Robot(FrankaInterface):
         return True
 
 
-if __name__ == "__main__":
-    franka_server = FrankaServer(
+def main():
+    fs = FrankaServer(
         cfg="deoxys_right.yml",
         host="localhost",
         state_port=8900,
         control_port=8901,
     )
+
+    fs.init_server()
+
+
+if __name__ == "__main__":
+    main()

@@ -56,3 +56,12 @@ class OculusVRStickDetector:
 
         self.controller_state_publisher.stop()
         print("Stopping the oculus keypoint extraction process.")
+
+
+def main():
+    detector = OculusVRStickDetector("localhost", 8889)
+    detector.stream()
+
+
+if __name__ == "__main__":
+    main()

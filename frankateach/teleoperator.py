@@ -39,9 +39,7 @@ class FrankaOperator:
         self._controller_state_subscriber = ZMQKeypointSubscriber(
             host=host, port=controller_state_port, topic="controller_state"
         )
-        self._control_publisher = ZMQKeypointPublisher(
-            host=host, port=control_port, topic="control"
-        )
+        self._control_publisher = ZMQKeypointPublisher(host=host, port=control_port)
         self._robot_state_subscriber = ZMQKeypointSubscriber(
             host=host, port=state_port, topic="state"
         )
@@ -54,14 +52,11 @@ class FrankaOperator:
         self.start_teleop = False
         self.init_affine = None
 
-    def return_real(self):
-        return True
-
     def _apply_retargeted_angles(self) -> None:
         self.controller_state = self._controller_state_subscriber.recv_keypoints()
 
         if self.is_first_frame:
-            # TODO: Send a reset command to the robot
+            print("Resetting robot..")
             self._control_publisher.pub_keypoints(
                 FrankaAction(
                     pos=np.zeros(3),
@@ -72,18 +67,23 @@ class FrankaOperator:
                 ),
                 "control",
             )
+
             time.sleep(2)
+            print("Reset robot done")
             # receive the robot state from subscriber
             robot_state = self._robot_state_subscriber.recv_keypoints()
+            print(robot_state)
             self.home_rot, self.home_pos = (
                 transform_utils.quat2mat(robot_state.quat),
                 robot_state.pos,
             )
             self.is_first_frame = False
         if self.controller_state.right_a:
+            print("Starting teleop")
             self.start_teleop = True
             self.init_affine = self.controller_state.right_affine
         if self.controller_state.right_b:
+            print("Stopping teleop")
             self.start_teleop = False
             self.init_affine = None
             # receive the robot state
@@ -151,12 +151,8 @@ class FrankaOperator:
 
         if self.start_teleop:
             self._control_publisher.pub_keypoints(action, "control")
-        # TODO: Send the target position and orientation to the robot
-        # self._robot.osc_move(
-        #     "OSC_POSE",
-        #     (target_pos.flatten(), target_quat.flatten()),
-        #     self.gripper_state,
-        # )
+        else:
+            print("No teleop")
 
     # def save_states(self):
     #     teleop_time = self._timestamps[-1] - self._timestamps[0]
@@ -179,7 +175,7 @@ class FrankaOperator:
     #         )
 
     def stream(self):
-        self.notify_component_start("Franka teleoperator control")
+        notify_component_start("Franka teleoperator control")
         print("Start controlling the robot hand using the Oculus Headset.\n")
 
         try:
@@ -192,5 +188,18 @@ class FrankaOperator:
             pass
         finally:
             self._controller_state_subscriber.stop()
+            self._control_publisher.stop()
+            self._robot_state_subscriber.stop()
 
         print("Stopping the teleoperator!")
+
+
+def main():
+    operator = FrankaOperator(
+        "localhost", controller_state_port=8889, state_port=8900, control_port=8901
+    )
+    operator.stream()
+
+
+if __name__ == "__main__":
+    main()
