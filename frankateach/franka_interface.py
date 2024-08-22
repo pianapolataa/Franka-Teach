@@ -15,13 +15,14 @@ from deoxys.utils.config_utils import (
 from frankateach.utils import FrequencyTimer, notify_component_start
 from frankateach.network import ZMQKeypointPublisher, ZMQKeypointSubscriber
 from frankateach.messages import FrankaAction, FrankaState
-
-TRANSLATIONAL_POSE_VELOCITY_SCALE = 5
-ROTATIONAL_POSE_VELOCITY_SCALE = 0.75
-ROTATION_VELOCITY_LIMIT = 0.5
-TRANSLATION_VELOCITY_LIMIT = 1
-VR_FREQ = 90
-STATE_FREQ = 100
+from frankateach.constants import (
+    VR_FREQ,
+    STATE_FREQ,
+    TRANSLATIONAL_POSE_VELOCITY_SCALE,
+    ROTATIONAL_POSE_VELOCITY_SCALE,
+    ROTATION_VELOCITY_LIMIT,
+    TRANSLATION_VELOCITY_LIMIT,
+)
 
 CONFIG_ROOT = Path(__file__).parent / "configs"
 
