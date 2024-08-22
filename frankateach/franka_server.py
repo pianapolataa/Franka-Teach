@@ -1,8 +1,10 @@
 import os
 from pathlib import Path
+import pickle
 import threading
 import time
 import numpy as np
+import zmq
 
 from deoxys.utils import YamlConfig
 from deoxys.franka_interface import FrankaInterface
@@ -39,7 +41,11 @@ class FrankaServer:
     ):
         self._robot = Robot(cfg, control_freq)
         self.state_publisher = ZMQKeypointPublisher(host, state_port)
-        self.control_subscriber = ZMQKeypointSubscriber(host, control_port, "control")
+
+        # Action REQ/REP
+        self.context = zmq.Context()
+        self.socket = self.context.socket(zmq.REP)
+        self.socket.bind(f"tcp://{host}:{control_port}")
 
         self.control_timer = FrequencyTimer(control_freq)
         self.state_timer = FrequencyTimer(STATE_FREQ)
@@ -86,21 +92,22 @@ class FrankaServer:
             while True:
                 self.control_timer.start_loop()
 
-                print("waiting for control")
-                franka_control: FrankaAction = self.control_subscriber.recv_keypoints()
-                print(franka_control)
-                # if franka_control.reset:
-                #     self._robot.reset_joints()
-                # else:
-                #     self._robot.osc_move(
-                #         franka_control.pos, franka_control.quat, franka_control.gripper
-                #     )
+                franka_control: FrankaAction = pickle.loads(self.socket.recv())
+                if franka_control.reset:
+                    self._robot.reset_joints()
+                    time.sleep(1)
+                else:
+                    self._robot.osc_move(
+                        franka_control.pos, franka_control.quat, franka_control.gripper
+                    )
+                self.socket.send(b"ok")
 
                 self.control_timer.end_loop()
         except KeyboardInterrupt:
             pass
         finally:
-            self.control_subscriber.stop()
+            self.socket.close()
+            self.context.term()
 
 
 class Robot(FrankaInterface):

@@ -1,5 +1,7 @@
+import pickle
+import zmq
 from frankateach.utils import FrequencyTimer, notify_component_start
-from frankateach.network import ZMQKeypointSubscriber, ZMQKeypointPublisher
+from frankateach.network import ZMQKeypointSubscriber
 from frankateach.constants import (
     H_R_V,
     H_R_V_star,
@@ -39,10 +41,13 @@ class FrankaOperator:
         self._controller_state_subscriber = ZMQKeypointSubscriber(
             host=host, port=controller_state_port, topic="controller_state"
         )
-        self._control_publisher = ZMQKeypointPublisher(host=host, port=control_port)
         self._robot_state_subscriber = ZMQKeypointSubscriber(
             host=host, port=state_port, topic="state"
         )
+
+        self.context = zmq.Context()
+        self.socket = self.context.socket(zmq.REQ)
+        self.socket.connect(f"tcp://{host}:{control_port}")
 
         self.teleop_timer = FrequencyTimer(VR_FREQ)
 
@@ -57,19 +62,16 @@ class FrankaOperator:
 
         if self.is_first_frame:
             print("Resetting robot..")
-            self._control_publisher.pub_keypoints(
-                FrankaAction(
-                    pos=np.zeros(3),
-                    quat=np.zeros(4),
-                    gripper=GRIPPER_OPEN,
-                    reset=True,
-                    timestamp=time.time(),
-                ),
-                "control",
+            action = FrankaAction(
+                pos=np.zeros(3),
+                quat=np.zeros(4),
+                gripper=GRIPPER_OPEN,
+                reset=True,
+                timestamp=time.time(),
             )
-
-            time.sleep(2)
-            print("Reset robot done")
+            self.socket.send(bytes(pickle.dumps(action, protocol=-1)))
+            ok_msg = self.socket.recv()
+            print(f"Reset : {ok_msg}")
             # receive the robot state from subscriber
             robot_state = self._robot_state_subscriber.recv_keypoints()
             print(robot_state)
@@ -112,7 +114,7 @@ class FrankaOperator:
 
         if self.start_teleop:
             relative_pos, relative_rot = (
-                relative_affine[:3, 3:],
+                relative_affine[:3, 3],
                 relative_affine[:3, :3],
             )
 
@@ -150,9 +152,8 @@ class FrankaOperator:
         )
 
         if self.start_teleop:
-            self._control_publisher.pub_keypoints(action, "control")
-        else:
-            print("No teleop")
+            self.socket.send(bytes(pickle.dumps(action, protocol=-1)))
+            ok_msg = self.socket.recv()
 
     # def save_states(self):
     #     teleop_time = self._timestamps[-1] - self._timestamps[0]
@@ -188,8 +189,9 @@ class FrankaOperator:
             pass
         finally:
             self._controller_state_subscriber.stop()
-            self._control_publisher.stop()
             self._robot_state_subscriber.stop()
+            self.socket.close()
+            self.context.term()
 
         print("Stopping the teleoperator!")
 
