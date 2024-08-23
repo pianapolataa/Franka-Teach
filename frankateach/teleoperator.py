@@ -152,8 +152,10 @@ class FrankaOperator:
             timestamp=time.time(),
         )
 
+        tic = time.time()
         self.socket.send(bytes(pickle.dumps(action, protocol=-1)))
         ok_msg = self.socket.recv()
+        print(f"Action takes: {time.time() - tic}")
 
     # def save_states(self):
     #     teleop_time = self._timestamps[-1] - self._timestamps[0]
