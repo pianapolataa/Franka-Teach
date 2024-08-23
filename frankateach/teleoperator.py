@@ -4,6 +4,7 @@ from frankateach.network import ZMQKeypointSubscriber, create_request_socket
 from frankateach.constants import (
     CONTROL_PORT,
     HOST,
+    STATE_PORT,
     VR_CONTROLLER_STATE_PORT,
     H_R_V,
     H_R_V_star,
@@ -37,20 +38,17 @@ def get_relative_affine(init_affine, current_affine):
 
 
 class FrankaOperator:
-    def __init__(self) -> None:
+    def __init__(self, save_states=False) -> None:
         # Subscribe controller state
         self._controller_state_subscriber = ZMQKeypointSubscriber(
             host=HOST, port=VR_CONTROLLER_STATE_PORT, topic="controller_state"
         )
-        # self._robot_state_subscriber = ZMQKeypointSubscriber(
-        #     host=host, port=state_port, topic="state"
-        # )
 
-        self.socket = create_request_socket(HOST, CONTROL_PORT)
-
-        # self.teleop_timer = FrequencyTimer(VR_FREQ)
+        self.action_socket = create_request_socket(HOST, CONTROL_PORT)
+        self.state_socket = create_request_socket(HOST, STATE_PORT)
 
         # Class variables
+        self._save_states = save_states
         self.is_first_frame = True
         self.gripper_state = GRIPPER_OPEN
         self.start_teleop = False
@@ -68,8 +66,8 @@ class FrankaOperator:
                 reset=True,
                 timestamp=time.time(),
             )
-            self.socket.send(bytes(pickle.dumps(action, protocol=-1)))
-            robot_state = pickle.loads(self.socket.recv())
+            self.action_socket.send(bytes(pickle.dumps(action, protocol=-1)))
+            robot_state = pickle.loads(self.action_socket.recv())
 
             print(robot_state)
             self.home_rot, self.home_pos = (
@@ -84,8 +82,8 @@ class FrankaOperator:
             self.start_teleop = False
             self.init_affine = None
             # receive the robot state
-            self.socket.send(b"get_state")
-            robot_state: FrankaState = pickle.loads(self.socket.recv())
+            self.action_socket.send(b"get_state")
+            robot_state: FrankaState = pickle.loads(self.action_socket.recv())
             if robot_state == b"state_error":
                 print("Error getting robot state")
                 return
@@ -152,11 +150,15 @@ class FrankaOperator:
         )
 
         tic = time.time()
-
-        self.socket.send(bytes(pickle.dumps(action, protocol=-1)))
-        robot_state = pickle.loads(self.socket.recv())
-
+        self.action_socket.send(bytes(pickle.dumps(action, protocol=-1)))
+        robot_state = self.action_socket.recv()
         print(f"Action takes: {time.time() - tic}")
+
+        if self._save_states:
+            self.state_socket.send(robot_state)
+            ok_msg = self.state_socket.recv()
+            if ok_msg != b"ok":
+                print("Error saving state")
 
     # def save_states(self):
     #     teleop_time = self._timestamps[-1] - self._timestamps[0]
@@ -184,16 +186,13 @@ class FrankaOperator:
 
         try:
             while True:
-                # self.teleop_timer.start_loop()
                 # Retargeting function
                 self._apply_retargeted_angles()
-                # self.teleop_timer.end_loop()
         except KeyboardInterrupt:
             pass
         finally:
             self._controller_state_subscriber.stop()
-            # self._robot_state_subscriber.stop()
-            self.socket.close()
+            self.action_socket.close()
 
         print("Stopping the teleoperator!")
 

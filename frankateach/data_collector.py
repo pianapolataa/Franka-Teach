@@ -4,18 +4,18 @@ import cv2
 import time
 import threading
 
-from frankateach.network import ZMQCameraSubscriber, ZMQKeypointSubscriber
+from frankateach.network import (
+    ZMQCameraSubscriber,
+    create_response_socket,
+)
 from frankateach.utils import notify_component_start
 
 
 from frankateach.constants import (
-    CONTROL_TOPIC,
     HOST,
     CAM_PORT,
     STATE_PORT,
-    CONTROL_PORT,
     DEPTH_PORT_OFFSET,
-    STATE_TOPIC,
 )
 
 
@@ -45,7 +45,7 @@ class DataCollector:
                     )
                 )
         if collect_state:
-            self.state_subscriber = ZMQKeypointSubscriber(HOST, STATE_PORT, STATE_TOPIC)
+            self.state_socket = create_response_socket(HOST, STATE_PORT)
 
         # Create the storage directory
         self.storage_path = Path(storage_path) / f"demonstration_{demo_num}"
@@ -141,7 +141,8 @@ class DataCollector:
         states = []
 
         while self.run_event.is_set():
-            state = self.state_subscriber.recv_keypoints()
+            state = pickle.loads(self.state_socket.recv())
+            self.state_socket.send(b"ok")
             states.append(state)
 
         print("Saving states...")
