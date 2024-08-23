@@ -4,11 +4,10 @@ import numpy as np
 import time
 import pickle
 
-from frankateach.constants import CAM_PORT, GRIPPER_OPEN, HOST, CONTROL_PORT, STATE_PORT
+from frankateach.constants import CAM_PORT, GRIPPER_OPEN, HOST, CONTROL_PORT
 from frankateach.messages import FrankaAction, FrankaState
 from frankateach.network import (
     ZMQCameraSubscriber,
-    ZMQKeypointSubscriber,
     create_request_socket,
 )
 
@@ -38,8 +37,6 @@ class FrankaEnv(gym.Env):
                 )
             )
 
-        self.state_subscriber = ZMQKeypointSubscriber(HOST, STATE_PORT, "state")
-
         self.action_request_socket = create_request_socket(HOST, CONTROL_PORT)
 
     def step(self, action):
@@ -55,12 +52,7 @@ class FrankaEnv(gym.Env):
         )
 
         self.action_request_socket.send(bytes(pickle.dumps(franka_action, protocol=-1)))
-        ok_msg = self.action_request_socket.recv()
-
-        if ok_msg != b"ok":
-            print("Failed to send action to the robot.")
-
-        franka_state: FrankaState = self.state_subscriber.recv_keypoints()
+        franka_state: FrankaState = pickle.loads(self.action_request_socket.recv())
 
         image_list = []
         for subscriber in self.image_subscribers:
@@ -76,7 +68,7 @@ class FrankaEnv(gym.Env):
         for i, image in enumerate(image_list):
             obs[f"pixels_{i}"] = cv2.resize(image, (self._width, self._height))
 
-        return obs, 0, False, False, {}
+        return obs, 0, False, {}
 
     def reset(self):
         franka_action = FrankaAction(
@@ -88,11 +80,7 @@ class FrankaEnv(gym.Env):
         )
 
         self.action_request_socket.send(bytes(pickle.dumps(franka_action, protocol=-1)))
-        ok_msg = self.action_request_socket.recv()
-        if ok_msg != b"ok":
-            raise Exception("Failed to reset the robot.")
-
-        franka_state: FrankaState = self.state_subscriber.recv_keypoints()
+        franka_state: FrankaState = pickle.loads(self.action_request_socket.recv())
 
         image_list = []
         for subscriber in self.image_subscribers:
@@ -108,18 +96,3 @@ class FrankaEnv(gym.Env):
             obs[f"pixels_{i}"] = cv2.resize(image, (self._width, self._height))
 
         return obs, {}
-
-    def render(self):
-        pass
-
-    def close(self):
-        pass
-
-    def seed(self):
-        pass
-
-    def configure(self):
-        pass
-
-    def __del__(self):
-        pass

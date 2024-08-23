@@ -2,9 +2,8 @@ defaults:
   - _self_
   - camera
 
-storage_path: "extracted_data/test"
+storage_path: "extracted_data/pickup-baguette"
 demo_num: 0
 collect_depth: False
 collect_state: True
-collect_control: False
 

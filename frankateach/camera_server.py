@@ -63,7 +63,7 @@ if __name__ == "__main__":
         cam_configs=[
             argparse.Namespace(
                 cam_serial_num=cam_serial_nums[i],
-                depth=True,
+                depth=False,
                 fps=30,
                 height=720,
                 width=1280,

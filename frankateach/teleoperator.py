@@ -155,10 +155,10 @@ class FrankaOperator:
         print(f"Action takes: {time.time() - tic}")
 
         if self._save_states:
+            tic = time.time()
             self.state_socket.send(robot_state)
             ok_msg = self.state_socket.recv()
-            if ok_msg != b"ok":
-                print("Error saving state")
+            print(f"Saving state takes: {time.time() - tic}")
 
     # def save_states(self):
     #     teleop_time = self._timestamps[-1] - self._timestamps[0]
@@ -198,7 +198,7 @@ class FrankaOperator:
 
 
 def main():
-    operator = FrankaOperator()
+    operator = FrankaOperator(save_states=True)
     operator.stream()
 
 

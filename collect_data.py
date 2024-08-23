@@ -11,7 +11,6 @@ def main(cfg):
         cam_config=cfg.cam_config,
         collect_depth=cfg.collect_depth,
         collect_state=cfg.collect_state,
-        collect_control=cfg.collect_control,
     )
     data_collector.start()
 

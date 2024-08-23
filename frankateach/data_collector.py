@@ -27,7 +27,6 @@ class DataCollector:
         cams=[],  # cam serial numbers
         cam_config=None,  # cam config
         collect_state=False,
-        collect_control=False,
         collect_depth=False,
     ):
         self.image_subscribers = []
@@ -148,7 +147,7 @@ class DataCollector:
         print("Saving states...")
         with open(filename, "wb") as f:
             pickle.dump(states, f)
-        self.state_subscriber.stop()
+        self.state_socket.close()
 
 
 #  def save_controls(self):
