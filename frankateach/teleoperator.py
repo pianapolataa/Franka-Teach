@@ -1,20 +1,18 @@
 import pickle
-import zmq
-from frankateach.utils import FrequencyTimer, notify_component_start
-from frankateach.network import ZMQKeypointSubscriber
+from frankateach.utils import notify_component_start
+from frankateach.network import ZMQKeypointSubscriber, create_request_socket
 from frankateach.constants import (
     CONTROL_PORT,
+    HOST,
     VR_CONTROLLER_STATE_PORT,
     H_R_V,
-    STATE_PORT,
     H_R_V_star,
     ROBOT_WORKSPACE_MIN,
     ROBOT_WORKSPACE_MAX,
     GRIPPER_OPEN,
     GRIPPER_CLOSE,
-    VR_FREQ,
 )
-from frankateach.messages import FrankaAction
+from frankateach.messages import FrankaAction, FrankaState
 
 from deoxys.utils import transform_utils
 
@@ -39,20 +37,18 @@ def get_relative_affine(init_affine, current_affine):
 
 
 class FrankaOperator:
-    def __init__(self, host, controller_state_port, state_port, control_port) -> None:
+    def __init__(self) -> None:
         # Subscribe controller state
         self._controller_state_subscriber = ZMQKeypointSubscriber(
-            host=host, port=controller_state_port, topic="controller_state"
+            host=HOST, port=VR_CONTROLLER_STATE_PORT, topic="controller_state"
         )
-        self._robot_state_subscriber = ZMQKeypointSubscriber(
-            host=host, port=state_port, topic="state"
-        )
+        # self._robot_state_subscriber = ZMQKeypointSubscriber(
+        #     host=host, port=state_port, topic="state"
+        # )
 
-        self.context = zmq.Context()
-        self.socket = self.context.socket(zmq.REQ)
-        self.socket.connect(f"tcp://{host}:{control_port}")
+        self.socket = create_request_socket(HOST, CONTROL_PORT)
 
-        self.teleop_timer = FrequencyTimer(VR_FREQ)
+        # self.teleop_timer = FrequencyTimer(VR_FREQ)
 
         # Class variables
         self.is_first_frame = True
@@ -73,10 +69,8 @@ class FrankaOperator:
                 timestamp=time.time(),
             )
             self.socket.send(bytes(pickle.dumps(action, protocol=-1)))
-            ok_msg = self.socket.recv()
-            print(f"Reset : {ok_msg}")
-            # receive the robot state from subscriber
-            robot_state = self._robot_state_subscriber.recv_keypoints()
+            robot_state = pickle.loads(self.socket.recv())
+
             print(robot_state)
             self.home_rot, self.home_pos = (
                 transform_utils.quat2mat(robot_state.quat),
@@ -90,7 +84,12 @@ class FrankaOperator:
             self.start_teleop = False
             self.init_affine = None
             # receive the robot state
-            robot_state = self._robot_state_subscriber.recv_keypoints()
+            self.socket.send(b"get_state")
+            robot_state: FrankaState = pickle.loads(self.socket.recv())
+            if robot_state == b"state_error":
+                print("Error getting robot state")
+                return
+
             self.home_rot, self.home_pos = (
                 transform_utils.quat2mat(robot_state.quat),
                 robot_state.pos,
@@ -153,8 +152,10 @@ class FrankaOperator:
         )
 
         tic = time.time()
+
         self.socket.send(bytes(pickle.dumps(action, protocol=-1)))
-        ok_msg = self.socket.recv()
+        robot_state = pickle.loads(self.socket.recv())
+
         print(f"Action takes: {time.time() - tic}")
 
     # def save_states(self):
@@ -183,28 +184,22 @@ class FrankaOperator:
 
         try:
             while True:
-                self.teleop_timer.start_loop()
+                # self.teleop_timer.start_loop()
                 # Retargeting function
                 self._apply_retargeted_angles()
-                self.teleop_timer.end_loop()
+                # self.teleop_timer.end_loop()
         except KeyboardInterrupt:
             pass
         finally:
             self._controller_state_subscriber.stop()
-            self._robot_state_subscriber.stop()
+            # self._robot_state_subscriber.stop()
             self.socket.close()
-            self.context.term()
 
         print("Stopping the teleoperator!")
 
 
 def main():
-    operator = FrankaOperator(
-        "localhost",
-        controller_state_port=VR_CONTROLLER_STATE_PORT,
-        state_port=STATE_PORT,
-        control_port=CONTROL_PORT,
-    )
+    operator = FrankaOperator()
     operator.stream()
 
 

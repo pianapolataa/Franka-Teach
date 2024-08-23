@@ -1,10 +1,8 @@
 import os
 from pathlib import Path
 import pickle
-import threading
 import time
 import numpy as np
-import zmq
 
 from deoxys.utils import YamlConfig
 from deoxys.franka_interface import FrankaInterface
@@ -15,12 +13,12 @@ from deoxys.utils.config_utils import (
 )
 
 from frankateach.utils import FrequencyTimer, notify_component_start
-from frankateach.network import ZMQKeypointPublisher
+from frankateach.network import ZMQKeypointPublisher, create_response_socket
 from frankateach.messages import FrankaAction, FrankaState
 from frankateach.constants import (
     CONTROL_PORT,
+    HOST,
     STATE_PORT,
-    STATE_TOPIC,
     VR_FREQ,
     STATE_FREQ,
     TRANSLATIONAL_POSE_VELOCITY_SCALE,
@@ -33,81 +31,88 @@ CONFIG_ROOT = Path(__file__).parent / "configs"
 
 
 class FrankaServer:
-    def __init__(
-        self,
-        cfg,
-        host,
-        state_port,
-        control_port,
-        state_freq=VR_FREQ,
-        control_freq=STATE_FREQ,
-    ):
-        self._robot = Robot(cfg, control_freq)
-        self.state_publisher = ZMQKeypointPublisher(host, state_port)
+    def __init__(self, cfg):
+        self._robot = Robot(cfg, VR_FREQ)
+        self.state_publisher = ZMQKeypointPublisher(HOST, STATE_PORT)
 
         # Action REQ/REP
-        self.context = zmq.Context()
-        self.socket = self.context.socket(zmq.REP)
-        self.socket.bind(f"tcp://{host}:{control_port}")
-
-        self.control_timer = FrequencyTimer(control_freq)
+        self.socket = create_response_socket(HOST, CONTROL_PORT)
         self.state_timer = FrequencyTimer(STATE_FREQ)
 
     def init_server(self):
         # connect to robot
         print("Starting Franka server...")
         self._robot.reset_robot()
+        self.control_daemon()
 
         # start state publisher and control subscriber
-        publisher_thread = threading.Thread(target=self.publish_state, daemon=True)
-        subscriber_thread = threading.Thread(target=self.control_robot, daemon=True)
+        # publisher_thread = threading.Thread(target=self.publish_state, daemon=True)
+        # subscriber_thread = threading.Thread(target=self.control_robot, daemon=True)
 
-        publisher_thread.start()
-        subscriber_thread.start()
+        # publisher_thread.start()
+        # subscriber_thread.start()
 
-        publisher_thread.join()
-        subscriber_thread.join()
+        # publisher_thread.join()
+        # subscriber_thread.join()
 
-    def publish_state(self):
-        notify_component_start(component_name="Franka State Publisher")
-        try:
-            while True:
-                self.state_timer.start_loop()
-                quat, pos = self._robot.last_eef_quat_and_pos
-                gripper = self._robot.last_gripper_action
-                if quat is not None and pos is not None and gripper is not None:
-                    state = FrankaState(
-                        pos=pos.flatten().astype(np.float32),
-                        quat=quat.flatten().astype(np.float32),
-                        gripper=gripper,
-                        timestamp=time.time(),
-                    )
-                    self.state_publisher.pub_keypoints(state, STATE_TOPIC)
-                self.state_timer.end_loop()
-        except KeyboardInterrupt:
-            pass
-        finally:
-            self.state_publisher.stop()
+    # def publish_state(self):
+    #     notify_component_start(component_name="Franka State Publisher")
+    #     try:
+    #         while True:
+    #             self.state_timer.start_loop()
+    #             quat, pos = self._robot.last_eef_quat_and_pos
+    #             gripper = self._robot.last_gripper_action
+    #             if quat is not None and pos is not None and gripper is not None:
+    #                 state = FrankaState(
+    #                     pos=pos.flatten().astype(np.float32),
+    #                     quat=quat.flatten().astype(np.float32),
+    #                     gripper=gripper,
+    #                     timestamp=time.time(),
+    #                 )
+    #                 self.state_publisher.pub_keypoints(state, STATE_TOPIC)
+    #             self.state_timer.end_loop()
+    #     except KeyboardInterrupt:
+    #         pass
+    #     finally:
+    #         self.state_publisher.stop()
 
-    def control_robot(self):
+    def get_state(self):
+        quat, pos = self._robot.last_eef_quat_and_pos
+        gripper = self._robot.last_gripper_action
+        if quat is not None and pos is not None and gripper is not None:
+            state = FrankaState(
+                pos=pos.flatten().astype(np.float32),
+                quat=quat.flatten().astype(np.float32),
+                gripper=gripper,
+                timestamp=time.time(),
+            )
+            return bytes(pickle.dumps(state, protocol=-1))
+        else:
+            return b"state_error"
+
+    def control_daemon(self):
         notify_component_start(component_name="Franka Control Subscriber")
         try:
             while True:
-                franka_control: FrankaAction = pickle.loads(self.socket.recv())
-                if franka_control.reset:
-                    self._robot.reset_joints(gripper_open=True)
-                    time.sleep(1)
+                command = self.socket.recv()
+                if command == b"get_state":
+                    self.socket.send(self.get_state())
                 else:
-                    self._robot.osc_move(
-                        franka_control.pos, franka_control.quat, franka_control.gripper
-                    )
-                self.socket.send(b"ok")
-
+                    franka_control: FrankaAction = pickle.loads(command)
+                    if franka_control.reset:
+                        self._robot.reset_joints(gripper_open=True)
+                        time.sleep(1)
+                    else:
+                        self._robot.osc_move(
+                            franka_control.pos,
+                            franka_control.quat,
+                            franka_control.gripper,
+                        )
+                    self.socket.send(self.get_state())
         except KeyboardInterrupt:
             pass
         finally:
             self.socket.close()
-            self.context.term()
 
 
 class Robot(FrankaInterface):
@@ -224,9 +229,6 @@ class Robot(FrankaInterface):
 def main():
     fs = FrankaServer(
         cfg="deoxys_right.yml",
-        host="localhost",
-        state_port=STATE_PORT,
-        control_port=CONTROL_PORT,
     )
 
     fs.init_server()
