@@ -49,6 +49,7 @@ class DataCollector:
         # Create the storage directory
         self.storage_path = Path(storage_path) / f"demonstration_{demo_num}"
         self.storage_path.mkdir(parents=True, exist_ok=True)
+        print("Storage path: ", self.storage_path)
 
         self.run_event = threading.Event()
         self.run_event.set()
@@ -128,6 +129,8 @@ class DataCollector:
         recorder.release()
         with open(metadata_filename, "wb") as f:
             pickle.dump(metadata, f)
+
+        print("Saved RGB video to ", filename)
         self.image_subscribers[cam_idx].stop()
 
     def save_depth(self, cam_idx, cam_config):
@@ -144,9 +147,10 @@ class DataCollector:
             self.state_socket.send(b"ok")
             states.append(state)
 
-        print("Saving states...")
         with open(filename, "wb") as f:
             pickle.dump(states, f)
+
+        print("Saved states to ", filename)
         self.state_socket.close()
 
 

@@ -65,8 +65,8 @@ if __name__ == "__main__":
                 cam_serial_num=cam_serial_nums[i],
                 depth=False,
                 fps=30,
-                height=720,
-                width=1280,
+                height=480,
+                width=640,
                 processing_preset=1,
             )
             for i in range(len(cam_serial_nums))

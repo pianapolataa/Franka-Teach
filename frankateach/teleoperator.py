@@ -160,25 +160,6 @@ class FrankaOperator:
             ok_msg = self.state_socket.recv()
             print(f"Saving state takes: {time.time() - tic}")
 
-    # def save_states(self):
-    #     teleop_time = self._timestamps[-1] - self._timestamps[0]
-    #     print(f"Took {teleop_time} seconds")
-    #     print(f"Saved {len(self._timestamps)} datapoints..")
-    #     print(f"Action save frequency : {len(self._timestamps) / teleop_time} Hz")
-
-    #     save_path = Path(self._storage_path) / f"demonstration_{self._demo_num}"
-    #     save_path.mkdir(parents=True, exist_ok=True)
-
-    #     with open(save_path / "states.pkl", "wb") as f:
-    #         pickle.dump(
-    #             {
-    #                 "poses": self._poses,
-    #                 "commanded_poses": self._commanded_poses,
-    #                 "gripper_states": self._gripper_states,
-    #                 "timestamps": self._timestamps,
-    #             },
-    #             f,
-    #         )
 
     def stream(self):
         notify_component_start("Franka teleoperator control")

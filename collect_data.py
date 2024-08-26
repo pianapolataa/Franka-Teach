@@ -2,7 +2,7 @@ import hydra
 from frankateach.data_collector import DataCollector
 
 
-@hydra.main(version_base="1.2", config_path="configs", config_name="collect_data")
+@hydra.main(config_path="configs", config_name="collect_data")
 def main(cfg):
     data_collector = DataCollector(
         storage_path=cfg.storage_path,

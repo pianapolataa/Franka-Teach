@@ -103,6 +103,7 @@ class Robot(FrankaInterface):
         print("Franka is connected")
 
     def osc_move(self, target_pos, target_quat, gripper_state):
+        # breakpoint()
         target_mat = transform_utils.pose2mat(pose=(target_pos, target_quat))
 
         current_quat, current_pos = self.last_eef_quat_and_pos
@@ -120,15 +121,17 @@ class Robot(FrankaInterface):
         quat_diff = transform_utils.quat_distance(target_quat, current_quat)
         axis_angle_diff = transform_utils.quat2axisangle(quat_diff)
 
-        action_pos = pose_error[:3] * TRANSLATIONAL_POSE_VELOCITY_SCALE
-        action_axis_angle = axis_angle_diff.flatten() * ROTATIONAL_POSE_VELOCITY_SCALE
+        action_pos = pose_error[:3]  #  * TRANSLATIONAL_POSE_VELOCITY_SCALE
+        action_axis_angle = (
+            axis_angle_diff.flatten()
+        )  #  * ROTATIONAL_POSE_VELOCITY_SCALE
 
-        action_pos, _ = transform_utils.clip_translation(
-            action_pos, TRANSLATION_VELOCITY_LIMIT
-        )
-        action_axis_angle = np.clip(
-            action_axis_angle, -ROTATION_VELOCITY_LIMIT, ROTATION_VELOCITY_LIMIT
-        )
+        # action_pos, _ = transform_utils.clip_translation(
+        #     action_pos, TRANSLATION_VELOCITY_LIMIT
+        # )
+        # action_axis_angle = np.clip(
+        #     action_axis_angle, -ROTATION_VELOCITY_LIMIT, ROTATION_VELOCITY_LIMIT
+        # )
 
         action = action_pos.tolist() + action_axis_angle.tolist() + [gripper_state]
 
@@ -162,10 +165,10 @@ class Robot(FrankaInterface):
 
         # This is for varying initialization of joints a little bit to
         # increase data variation.
-        start_joint_pos = [
-            e + np.clip(np.random.randn() * 0.005, -0.005, 0.005)
-            for e in start_joint_pos
-        ]
+        # start_joint_pos = [
+        #     e + np.clip(np.random.randn() * 0.005, -0.005, 0.005)
+        #     for e in start_joint_pos
+        # ]
         if type(start_joint_pos) is list:
             action = start_joint_pos + [gripper_action]
         else:
