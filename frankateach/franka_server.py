@@ -19,10 +19,6 @@ from frankateach.constants import (
     CONTROL_PORT,
     HOST,
     VR_FREQ,
-    TRANSLATIONAL_POSE_VELOCITY_SCALE,
-    ROTATIONAL_POSE_VELOCITY_SCALE,
-    ROTATION_VELOCITY_LIMIT,
-    TRANSLATION_VELOCITY_LIMIT,
 )
 
 CONFIG_ROOT = Path(__file__).parent / "configs"
@@ -72,6 +68,7 @@ class FrankaServer:
                             franka_control.quat,
                             franka_control.gripper,
                         )
+                        # time.sleep(0.1)
                     self.action_socket.send(self.get_state())
         except KeyboardInterrupt:
             pass
@@ -121,17 +118,8 @@ class Robot(FrankaInterface):
         quat_diff = transform_utils.quat_distance(target_quat, current_quat)
         axis_angle_diff = transform_utils.quat2axisangle(quat_diff)
 
-        action_pos = pose_error[:3]  #  * TRANSLATIONAL_POSE_VELOCITY_SCALE
-        action_axis_angle = (
-            axis_angle_diff.flatten()
-        )  #  * ROTATIONAL_POSE_VELOCITY_SCALE
-
-        # action_pos, _ = transform_utils.clip_translation(
-        #     action_pos, TRANSLATION_VELOCITY_LIMIT
-        # )
-        # action_axis_angle = np.clip(
-        #     action_axis_angle, -ROTATION_VELOCITY_LIMIT, ROTATION_VELOCITY_LIMIT
-        # )
+        action_pos = pose_error[:3]
+        action_axis_angle = axis_angle_diff.flatten()
 
         action = action_pos.tolist() + action_axis_angle.tolist() + [gripper_state]
 
