@@ -1,13 +1,17 @@
+from collections import defaultdict
 from pathlib import Path
 import pickle
 import cv2
 import time
 import threading
+import h5py
+import numpy as np
 
 from frankateach.network import (
     ZMQCameraSubscriber,
     create_response_socket,
 )
+from frankateach.sensors.reskin import ReskinSensorSubscriber
 from frankateach.utils import notify_component_start
 
 
@@ -16,6 +20,7 @@ from frankateach.constants import (
     CAM_PORT,
     STATE_PORT,
     DEPTH_PORT_OFFSET,
+    RESKIN_STREAM_PORT,
 )
 
 
@@ -28,6 +33,7 @@ class DataCollector:
         cam_config=None,  # cam config
         collect_state=False,
         collect_depth=False,
+        collect_reskin=False,
     ):
         self.image_subscribers = []
         self.depth_subscribers = []
@@ -45,6 +51,9 @@ class DataCollector:
                 )
         if collect_state:
             self.state_socket = create_response_socket(HOST, STATE_PORT)
+
+        if collect_reskin:
+            self.reskin_subscriber = ReskinSensorSubscriber()
 
         # Create the storage directory
         self.storage_path = Path(storage_path) / f"demonstration_{demo_num}"
@@ -75,6 +84,9 @@ class DataCollector:
 
         if collect_state:
             self.threads.append(threading.Thread(target=self.save_states, daemon=True))
+
+        if collect_reskin:
+            self.threads.append(threading.Thread(target=self.save_reskin, daemon=True))
 
     def start(self):
         for thread in self.threads:
@@ -153,18 +165,46 @@ class DataCollector:
         print("Saved states to ", filename)
         self.state_socket.close()
 
+    def save_reskin(self):
+        notify_component_start(component_name="Reskin Collector")
 
-#  def save_controls(self):
-#      notify_component_start(component_name="Control Collector")
+        sensor_information = defaultdict(list)
+        filename = self.storage_path / "reskin_sensor_values.h5"
 
-#      filename = self.storage_path / "controls.pkl"
-#      controls = []
+        print("Starting to record Reskin frames from port:", RESKIN_STREAM_PORT)
 
-#      while self.run_event.is_set():
-#          control = self.control_subscriber.recv_keypoints()
-#          print(control)
-#          controls.append(control)
+        while self.run_event.is_set():
+            reskin_state = self.reskin_subscriber.get_sensor_state()
+            for attr in reskin_state.keys():
+                sensor_information[attr].append(reskin_state[attr])
 
-#      with open(filename, "wb") as f:
-#          pickle.dump(controls, f)
-#      self.control_subscriber.stop()
+        print("Finished recording Reskin frames")
+
+        # Writing to dataset
+        print("Compressing Reskin sensor data...")
+        with h5py.File(filename, "w") as hf:
+            for key in sensor_information.keys():
+                sensor_information[key] = np.array(
+                    sensor_information[key],
+                    dtype=np.float32 if key != "timestamp" else np.float64,
+                )
+                hf.create_dataset(
+                    key,
+                    data=sensor_information[key],
+                    compression="gzip",
+                    compression_opts=6,
+                )
+
+        print("Saved Reskin sensor data to ", filename)
+        print(
+            "ReSkin Data duration: ",
+            sensor_information["timestamp"][-1] - sensor_information["timestamp"][0],
+        )
+
+        print(
+            "Frequency of ReSkin savings: ",
+            len(sensor_information["timestamp"])
+            / (
+                sensor_information["timestamp"][-1] - sensor_information["timestamp"][0]
+            ),
+        )
