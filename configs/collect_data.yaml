@@ -4,7 +4,8 @@ defaults:
 
 storage_path: "/home/enes/data/tracking_policies/extracted_data/slip_detection"
 demo_num: 0
+collect_img: False
 collect_depth: False
-collect_state: True
+collect_state: False 
 collect_reskin: True
 

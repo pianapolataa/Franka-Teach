@@ -31,16 +31,18 @@ class DataCollector:
         demo_num: int,
         cams=[],  # cam serial numbers
         cam_config=None,  # cam config
+        collect_img=False,
         collect_state=False,
         collect_depth=False,
         collect_reskin=False,
     ):
         self.image_subscribers = []
         self.depth_subscribers = []
-        for cam_idx, _ in enumerate(cams):
-            self.image_subscribers.append(
-                ZMQCameraSubscriber(HOST, CAM_PORT + cam_idx, "RGB")
-            )
+        if collect_img:
+            for cam_idx, _ in enumerate(cams):
+                self.image_subscribers.append(
+                    ZMQCameraSubscriber(HOST, CAM_PORT + cam_idx, "RGB")
+                )
 
         if collect_depth:
             for cam_idx, _ in enumerate(cams):
@@ -65,13 +67,14 @@ class DataCollector:
         self.threads = []
 
         for cam_idx, _ in enumerate(cams):
-            self.threads.append(
-                threading.Thread(
-                    target=self.save_rgb,
-                    args=(cam_idx, cam_config),
-                    daemon=True,
+            if collect_img:
+                self.threads.append(
+                    threading.Thread(
+                        target=self.save_rgb,
+                        args=(cam_idx, cam_config),
+                        daemon=True,
+                    )
                 )
-            )
 
             if collect_depth:
                 self.threads.append(

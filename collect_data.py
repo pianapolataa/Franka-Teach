@@ -9,6 +9,7 @@ def main(cfg):
         demo_num=cfg.demo_num,
         cams=cfg.cam_serial_numbers,
         cam_config=cfg.cam_config,
+        collect_img=cfg.collect_img,
         collect_depth=cfg.collect_depth,
         collect_state=cfg.collect_state,
         collect_reskin=cfg.collect_reskin,
