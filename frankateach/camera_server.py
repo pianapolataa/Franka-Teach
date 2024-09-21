@@ -46,29 +46,4 @@ class RealsenseServer:
             cam_thread.join()
 
 
-def main(host, cam_port, cam_configs):
-    server = RealsenseServer(
-        host=host,
-        cam_port=cam_port,
-        cam_configs=cam_configs,
-    )
-    server._init_camera_threads()
 
-
-if __name__ == "__main__":
-    cam_serial_nums = ["147322072736", "028522071213", "147322072546", "152222073516"]
-    main(
-        host="localhost",
-        cam_port=10005,
-        cam_configs=[
-            argparse.Namespace(
-                cam_serial_num=cam_serial_nums[i],
-                depth=False,
-                fps=30,
-                height=480,
-                width=640,
-                processing_preset=1,
-            )
-            for i in range(len(cam_serial_nums))
-        ],
-    )

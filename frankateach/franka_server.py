@@ -181,10 +181,3 @@ class Robot(FrankaInterface):
         return True
 
 
-def main():
-    fs = FrankaServer(cfg="deoxys_right.yml")
-    fs.init_server()
-
-
-if __name__ == "__main__":
-    main()
