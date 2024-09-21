@@ -100,7 +100,6 @@ class Robot(FrankaInterface):
         print("Franka is connected")
 
     def osc_move(self, target_pos, target_quat, gripper_state):
-        # breakpoint()
         target_mat = transform_utils.pose2mat(pose=(target_pos, target_quat))
 
         current_quat, current_pos = self.last_eef_quat_and_pos

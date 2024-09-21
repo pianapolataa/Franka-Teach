@@ -152,14 +152,14 @@ class FrankaOperator:
         tic = time.time()
         self.action_socket.send(bytes(pickle.dumps(action, protocol=-1)))
         robot_state = self.action_socket.recv()
-        print(f"Action takes: {time.time() - tic}")
+        #       print(f"Action takes: {time.time() - tic}")
 
         if self._save_states:
-            tic = time.time()
+            #           tic = time.time()
             self.state_socket.send(robot_state)
             ok_msg = self.state_socket.recv()
-            print(f"Saving state takes: {time.time() - tic}")
 
+    #             print(f"Saving state takes: {time.time() - tic}")
 
     def stream(self):
         notify_component_start("Franka teleoperator control")
