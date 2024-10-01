@@ -11,9 +11,39 @@ todo
 2. Make sure the NUC is booted with the real-time kernel
 
 
-## Franka Setup
+## Lambda Machine Setup
 
-todo
+todo: how to setup network, etc.
+
+1. Setup deoxys_control:
+
+```bash
+git clone git@github.com:NYU-robot-learning/deoxys_control.git
+mamba create -n "franka_teach" python=3.10
+conda activate franka_teach
+cd deoxys_control/deoxys
+
+# Instructions from deoxys repo (this takes a while to build everything)
+./InstallPackage
+make -j build_deoxys=1
+pip install -U -r requirements.txt
+```
+
+2. Install the Franka-Teach requirements:
+
+```bash
+cd /path/to/Franka-Teach
+pip install -r requirements.txt
+```
+
+3. Install ReSkin sensor library:
+
+```bash
+git clone git@github.com:NYU-robot-learning/reskin_sensor.git
+cd reskin_sensor
+pip install -e .
+```
+
 
 
 ## Proxy Setup
@@ -107,3 +137,9 @@ python3 collect_data.py demo_num=0
 ```
 
 4. Use the VR controllers to control the robot.
+
+
+## TODO
+
+- [ ] add test_franka_env.py script
+- [ ] add a teleoperation start script at the root of the project that runs both oculus_stick.py and teleoperator.py
