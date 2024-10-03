@@ -15,6 +15,7 @@ todo
 
 todo: how to setup network, etc.
 
+
 1. Setup deoxys_control. NOTE: When doing `./InstallPackage`, select `0.13.3` for installing libfranka:
 
 ```bash
@@ -78,7 +79,12 @@ The following credentials are used for the Franka Desk interface:
 Username: GRAIL
 Password: grail1234
 ```
-NOTE: Franka Desk interface may have a hard time connecting to the robot. If this happens, try refreshing the page until it does first. Also check if a Desk interface is open on another tab.
+
+NOTE: Franka Desk is cursed. You might face all sorts of issues with it. General troubleshooting:
+
+- If it doesn't seem to connect, keep refreshing. If you lose all hope, reboot the robot.
+- If end-effector doesn't show as active, you can go to the settings page and do a power off/on for the end-effector. You need to re-initialize the gripper in the same page after doing a power cycle.
+- Two desk pages (for two robots) cannot be open at the same time. Close one tab and connect to the other one.
 
 3. Open the brakes for the robot:
 
