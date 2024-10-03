@@ -13,7 +13,7 @@ STATE_TOPIC = "state"
 CONTROL_TOPIC = "control"
 
 # VR constants
-VR_TCP_HOST = "10.19.195.45"
+VR_TCP_HOST = "10.19.128.106"
 VR_TCP_PORT = 5555
 VR_CONTROLLER_TOPIC = b"oculus_controller"
 
