@@ -45,7 +45,6 @@ pip install -e .
 ```
 
 
-
 ## Proxy Setup
 
 1. Install FoxyProxy extension on Chrome or Firefox. Set up the proxy like this:
@@ -101,12 +100,11 @@ cd /home/robot-lab/work/deoxys_control/deoxys
 
 ```bash
 cd /path/to/Franka-Teach/
-cd frankateach
 python3 franka_server.py
 python3 camera_server.py # in a different terminal
 ```
 
-7. Run franka_env test script:
+7. TODO: run franka_env test script:
 
 ```bash
 cd /path/to/Franka-Teach/
@@ -118,28 +116,17 @@ python3 test_franka_env.py
 1. Do the steps until 6 in the "How to run the Franka-Teach environment" section.
 
 
-2. Also, start the teleoperation scripts:
+2. Also, start the teleoperation script. If you want to collect robot states, set `save_states=True`:
 
 ```bash
-cd /path/to/Franka-Teach/
-cd frankateach
-# each in a different terminal
-python3 oculus_stick.py
-python3 teleoperator.py
+python3 teleop.py save_states=[True/False]
 ```
 
-3. If `save_states=True` in `FrankaOperator` class in `teleoperator.py`, the operation will not start until you start the data collection.
+3. If `save_states=True`, the teleoperation will not start until you start the data collection.
 You can start the data collection by running the `collect_data.py` script:
 
 ```bash
-cd /path/to/Franka-Teach/
 python3 collect_data.py demo_num=0
 ```
 
 4. Use the VR controllers to control the robot.
-
-
-## TODO
-
-- [ ] add test_franka_env.py script
-- [ ] add a teleoperation start script at the root of the project that runs both oculus_stick.py and teleoperator.py
