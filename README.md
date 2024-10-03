@@ -70,7 +70,7 @@ Host nuc
 ssh nuc
 ```
 
-2. Go to `172.16.0.4/desk` for the Franka Desk interface for the right robot and `192.16.1.4/desk` for the left robot.
+2. Go to `172.16.0.4/desk` for the Franka Desk interface for the right robot and `172.16.1.4/desk` for the left robot.
 
 The following credentials are used for the Franka Desk interface:
 
