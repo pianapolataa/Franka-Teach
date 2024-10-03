@@ -15,7 +15,7 @@ todo
 
 todo: how to setup network, etc.
 
-1. Setup deoxys_control:
+1. Setup deoxys_control. NOTE: When doing `./InstallPackage`, select `0.13.3` for installing libfranka:
 
 ```bash
 git clone git@github.com:NYU-robot-learning/deoxys_control.git
