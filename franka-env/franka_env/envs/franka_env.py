@@ -22,7 +22,7 @@ from frankateach.sensors.reskin import ReskinSensorSubscriber
 class FrankaEnv(gym.Env):
     def __init__(
         self,
-        num_cameras=4,
+        cam_ids=[1, 2, 3, 4],
         width=640,
         height=480,
         use_robot=True,
@@ -57,9 +57,8 @@ class FrankaEnv(gym.Env):
 
         if self.use_robot:
             self.image_subscribers = []
-            for cam_idx in range(num_cameras):
+            for cam_idx in cam_ids:
                 port = CAM_PORT + cam_idx
-                # TODO: Currently would not work with fisheye cameras
                 self.image_subscribers.append(
                     ZMQCameraSubscriber(
                         host=HOST,
