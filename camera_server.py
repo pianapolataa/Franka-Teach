@@ -8,14 +8,14 @@ import argparse
 def main(cfg):
     realsense_cam_configs = [
         argparse.Namespace(
-            cam_serial_num=cfg.cam_serial_numbers[i],
+            cam_serial_num=serial_num,
             depth=cfg.cam_config.depth,
             fps=cfg.cam_config.fps,
             height=cfg.cam_config.height,
             width=cfg.cam_config.width,
             processing_preset=cfg.cam_config.processing_preset,
         )
-        for i in range(len(cfg.cam_serial_numbers))
+        for _, serial_num in cfg.cam_serial_numbers.items()
     ]
 
     realsense_server = RealsenseServer(
@@ -31,7 +31,7 @@ def main(cfg):
             height=cfg.fisheye_cam_config.height,
             width=cfg.fisheye_cam_config.width,
         )
-        for _, serial_num in range(len(cfg.fisheye_cam_numbers))
+        for _, serial_num in cfg.fisheye_cam_numbers.items()
     ]
 
     fisheye_server = FishEyeServer(
