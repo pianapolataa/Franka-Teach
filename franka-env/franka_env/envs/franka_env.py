@@ -16,11 +16,18 @@ from frankateach.network import (
     ZMQCameraSubscriber,
     create_request_socket,
 )
+from frankateach.sensors.reskin import ReskinSensorSubscriber
 
 
 class FrankaEnv(gym.Env):
     def __init__(
-        self, num_cameras=4, width=640, height=480, use_robot=True, use_egocentric=False
+        self,
+        num_cameras=4,
+        width=640,
+        height=480,
+        use_robot=True,
+        sensor_type="reskin",
+        sensor_params=None,
     ):
         super(FrankaEnv, self).__init__()
         self.width = width
@@ -30,7 +37,10 @@ class FrankaEnv(gym.Env):
         self.action_dim = 7  # (pos, axis angle, gripper)
 
         self.use_robot = use_robot
-        self.use_egocentric = use_egocentric
+        self.sensor_type = sensor_type
+        if sensor_type is not None:
+            assert sensor_type in ["reskin"]
+        self.sensor_params = sensor_params
 
         self.n_channels = 3
         self.reward = 0
@@ -49,6 +59,7 @@ class FrankaEnv(gym.Env):
             self.image_subscribers = []
             for cam_idx in range(num_cameras):
                 port = CAM_PORT + cam_idx
+                # TODO: Currently would not work with fisheye cameras
                 self.image_subscribers.append(
                     ZMQCameraSubscriber(
                         host=HOST,
@@ -56,6 +67,18 @@ class FrankaEnv(gym.Env):
                         topic_type="RGB",
                     )
                 )
+            if self.sensor_type == "reskin":
+                self.sensor_subscriber = ReskinSensorSubscriber()
+                self.n_sensors = 2
+                self.sensor_dim = 15
+
+                self.sensor_prev_state = None
+                self.subtract_sensor_baseline = sensor_params[
+                    "subtract_sensor_baseline"
+                ]
+
+                # Call once to populate initial baseline
+                self._get_reskin_state(update_baseline=True)
 
             self.action_request_socket = create_request_socket(HOST, CONTROL_PORT)
 
@@ -99,7 +122,16 @@ class FrankaEnv(gym.Env):
             "features": np.concatenate(
                 (franka_state.pos, franka_state.quat, [franka_state.gripper])
             ),
+            "proprioceptive": np.concatenate(
+                (franka_state.pos, franka_state.quat, [franka_state.gripper])
+            ),
         }
+        if self.sensor_type == "reskin":
+            try:
+                reskin_state = self._get_reskin_state()
+                obs.update(reskin_state)
+            except KeyError:
+                pass
 
         for i, image in enumerate(image_list):
             obs[f"pixels{i}"] = cv2.resize(image, (self.width, self.height))
@@ -136,18 +168,61 @@ class FrankaEnv(gym.Env):
                 "features": np.concatenate(
                     (franka_state.pos, franka_state.quat, [franka_state.gripper])
                 ),
+                "proprioceptive": np.concatenate(
+                    (franka_state.pos, franka_state.quat, [franka_state.gripper])
+                ),
             }
+            if self.sensor_type == "reskin":
+                try:
+                    reskin_state = self._get_reskin_state(update_baseline=True)
+                    obs.update(reskin_state)
+                except KeyError:
+                    pass
+
             for i, image in enumerate(image_list):
                 obs[f"pixels{i}"] = cv2.resize(image, (self.width, self.height))
 
             return obs
 
         else:
+            # TODO: Remove this nonsensical dependency on the robot
             obs = {}
             obs["features"] = np.zeros(self.feature_dim)
+            obs["proprioceptive"] = np.zeros(self.feature_dim)
+            for sensor_idx in range(self.n_sensors):
+                obs[f"sensor{sensor_idx}"] = np.zeros(self.sensor_dim)
+                obs[f"sensor{sensor_idx}_diffs"] = np.zeros(self.sensor_dim)
+            self.sensor_baseline = np.zeros(self.sensor_dim * self.n_sensors)
             obs["pixels"] = np.zeros((self.height, self.width, self.n_channels))
 
             return obs
+
+    def _get_reskin_state(self, update_baseline=False):
+        sensor_state = self.sensor_subscriber.get_sensor_state()
+        sensor_values = np.array(sensor_state["sensor_values"], dtype=np.float32)
+        if update_baseline:
+            baseline_meas = []
+            while len(baseline_meas) < 5:
+                self.action_request_socket.send(b"get_sensor_state")
+                ret = pickle.loads(self.action_request_socket.recv())
+                sensor_state = ret["reskin"]["sensor_values"]
+                baseline_meas.append(sensor_state)
+            self.sensor_baseline = np.mean(baseline_meas, axis=0)
+        if self.subtract_sensor_baseline:
+            sensor_values = sensor_values - self.sensor_baseline
+
+        sensor_diff = sensor_values - self.sensor_prev_state
+        self.sensor_prev_state = sensor_values
+        sensor_keys = [f"sensor{sensor_idx}" for sensor_idx in range(self.n_sensors)]
+        reskin_state = {}
+        for sidx, sensor_key in enumerate(sensor_keys):
+            reskin_state[sensor_key] = sensor_values[
+                sidx * self.sensor_dim : (sidx + 1) * self.sensor_dim
+            ]
+            reskin_state[f"{sensor_key}_diffs"] = sensor_diff[
+                sidx * self.sensor_dim : (sidx + 1) * self.sensor_dim
+            ]
+        return reskin_state
 
     def render(self, mode="rgb_array", width=640, height=480):
         assert self.curr_images is not None, "Must call reset() before render()"
