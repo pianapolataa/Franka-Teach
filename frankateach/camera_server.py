@@ -6,77 +6,53 @@ from frankateach.sensors.realsense import RealsenseCamera
 from frankateach.sensors.fisheye_cam import FishEyeCamera
 
 
-class RealsenseServer:
-    def __init__(self, host, cam_port, cam_configs):
+class CameraServer:
+    def __init__(self, host: str, cam_port: int, cam_configs: list):
         self._host = host
         self._cam_port = cam_port
         self._cam_configs = cam_configs
+        self._cam_threads = []
 
-        ctx = rs.context()
-        devices = ctx.query_devices()
+        if "realsense" in cam_configs.keys():
+            ctx = rs.context()
+            devices = ctx.query_devices()
 
-        for dev in devices:
-            dev.hardware_reset()
+            for dev in devices:
+                dev.hardware_reset()
 
-        print("Waiting for hardware reset on cameras for 15 seconds...")
-        time.sleep(15)
-
-        self.cam_threads = []
+            print("Waiting for hardware reset on cameras for 15 seconds...")
+            time.sleep(10)
 
     def _start_component(self, cam_idx, cam_config):
-        component = RealsenseCamera(
-            host=self._host,
-            port=self._cam_port + cam_idx,
-            cam_id=cam_idx,
-            cam_config=cam_config,
-        )
+        cam_type = cam_config.type
+        if cam_type == "realsense":
+            component = RealsenseCamera(
+                host=self._host,
+                port=self._cam_port + cam_idx,
+                cam_id=cam_idx,
+                cam_config=cam_config,
+            )
+        elif cam_type == "fisheye":
+            component = FishEyeCamera(
+                host=self._host,
+                port=self._cam_port + cam_idx,
+                cam_id=cam_idx,
+                cam_config=cam_config,
+            )
+        else:
+            raise ValueError(f"Invalid camera type: {cam_type}")
         component.stream()
 
     def _init_camera_threads(self):
-        for cam_idx, cam_config in enumerate(self._cam_configs):
-            cam_thread = threading.Thread(
-                target=self._start_component,
-                args=(cam_idx, cam_config),
-                daemon=True,
-            )
-            cam_thread.start()
-            self.cam_threads.append(cam_thread)
+        for cam_type in self._cam_configs:
+            for cam_cfg in self._cam_configs[cam_type]:
+                cam_thread = threading.Thread(
+                    target=self._start_component,
+                    args=(cam_cfg.cam_id, cam_cfg),
+                    daemon=True,
+                )
+                cam_thread.start()
+                self._cam_threads.append(cam_thread)
 
-        for cam_thread in self.cam_threads:
-            cam_thread.join()
-
-
-class FishEyeServer:
-    """
-    Returns all the fish eye camera processes. Start the list of processes to start
-    the camera stream.
-    """
-
-    def __init__(self, host, cam_port, cam_configs):
-        self._host = host
-        self._cam_port = cam_port
-        self._cam_configs = cam_configs
-        self.cam_threads = []
-
-    def _start_component(self, cam_idx, cam_config):
-        component = FishEyeCamera(
-            host=self._host,
-            port=self._cam_port + cam_idx,
-            cam_id=cam_idx,
-            cam_config=cam_config,
-        )
-        component.stream()
-
-    def _init_camera_threads(self):
-        # import ipdb; ipdb.set_trace()
-        for cam_idx, cam_config in enumerate(self._cam_configs):
-            cam_thread = threading.Thread(
-                target=self._start_component,
-                args=(cam_idx, cam_config),
-                daemon=True,
-            )
-            cam_thread.start()
-            self.cam_threads.append(cam_thread)
-
-        for cam_thread in self.cam_threads:
+        for cam_thread in self._cam_threads:
             cam_thread.join()

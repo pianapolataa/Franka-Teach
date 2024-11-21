@@ -1,47 +1,24 @@
-from frankateach.camera_server import FishEyeServer, RealsenseServer
-from frankateach.constants import FISHEYE_CAM_PORT, HOST, CAM_PORT
+from collections import defaultdict
+from frankateach.camera_server import CameraServer
+from frankateach.constants import HOST, CAM_PORT
 import hydra
 import argparse
 
 
 @hydra.main(version_base="1.2", config_path="configs", config_name="camera")
 def main(cfg):
-    realsense_cam_configs = [
-        argparse.Namespace(
-            cam_serial_num=serial_num,
-            depth=cfg.cam_config.depth,
-            fps=cfg.cam_config.fps,
-            height=cfg.cam_config.height,
-            width=cfg.cam_config.width,
-            processing_preset=cfg.cam_config.processing_preset,
-        )
-        for _, serial_num in cfg.cam_serial_numbers.items()
-    ]
+    cam_configs = defaultdict(list)
+    for camera in cfg.cam_info:
+        cam_config = argparse.Namespace(**camera, **cfg.cam_config[camera.type])
+        cam_configs[camera.type].append(cam_config)
 
-    realsense_server = RealsenseServer(
+    camera_server = CameraServer(
         host=HOST,
         cam_port=CAM_PORT,
-        cam_configs=realsense_cam_configs,
+        cam_configs=cam_configs,
     )
 
-    fisheye_cam_configs = [
-        argparse.Namespace(
-            cam_serial_num=serial_num,
-            fps=cfg.fisheye_cam_config.fps,
-            height=cfg.fisheye_cam_config.height,
-            width=cfg.fisheye_cam_config.width,
-        )
-        for _, serial_num in cfg.fisheye_cam_numbers.items()
-    ]
-
-    fisheye_server = FishEyeServer(
-        host=HOST,
-        cam_port=FISHEYE_CAM_PORT,
-        cam_configs=fisheye_cam_configs,
-    )
-
-    realsense_server._init_camera_threads()
-    fisheye_server._init_camera_threads()
+    camera_server._init_camera_threads()
 
 
 if __name__ == "__main__":

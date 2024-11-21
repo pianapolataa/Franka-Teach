@@ -1,20 +1,33 @@
-cam_serial_numbers:
-  1: "147322072736"
-  2: "028522071213"
-  3: "147322072546"
-  4: "152222073516"
+cam_info:
+  -
+    cam_id: 1
+    cam_serial_num: "147322072736"
+    type: realsense
+  -
+    cam_id: 2
+    cam_serial_num: "028522071213"
+    type: realsense
+  -
+    cam_id: 3
+    cam_serial_num: "147322072546"
+    type: realsense
+  -
+    cam_id: 4
+    cam_serial_num: "152222073516"
+    type: realsense
+  -
+    cam_id: 51
+    cam_serial_num: 24
+    type: fisheye
 
 cam_config:
-  width: 640
-  height: 480
-  fps: 30
-  processing_preset: 1
-  depth: False
-
-fisheye_cam_serial_numbers:
-  51: 24
-
-fisheye_cam_config:
-  width: 640
-  height: 480
-  fps: 30
+  realsense:
+    width: 640
+    height: 480
+    fps: 30
+    processing_preset: 1
+    depth: False
+  fisheye:
+    width: 640
+    height: 480
+    fps: 30
