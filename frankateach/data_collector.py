@@ -14,7 +14,6 @@ from frankateach.network import (
 from frankateach.sensors.reskin import ReskinSensorSubscriber
 from frankateach.utils import notify_component_start
 
-
 from frankateach.constants import (
     HOST,
     CAM_PORT,
@@ -29,8 +28,8 @@ class DataCollector:
         self,
         storage_path: str,
         demo_num: int,
-        cams=[],  # cam serial numbers
-        cam_config=None,  # cam config
+        cams=[],  # camera info dicts
+        cam_config=None,  # camera configs by type
         collect_img=False,
         collect_state=False,
         collect_depth=False,
@@ -39,18 +38,20 @@ class DataCollector:
         self.image_subscribers = []
         self.depth_subscribers = []
         if collect_img:
-            for cam_idx, _ in enumerate(cams):
+            for camera in cams:
                 self.image_subscribers.append(
-                    ZMQCameraSubscriber(HOST, CAM_PORT + cam_idx, "RGB")
+                    ZMQCameraSubscriber(HOST, CAM_PORT + camera.cam_id, "RGB")
                 )
 
         if collect_depth:
-            for cam_idx, _ in enumerate(cams):
-                self.depth_subscribers.append(
-                    ZMQCameraSubscriber(
-                        HOST, CAM_PORT + DEPTH_PORT_OFFSET + cam_idx, "Depth"
+            for camera in cams:
+                if camera.type == "realsense":
+                    self.depth_subscribers.append(
+                        ZMQCameraSubscriber(
+                            HOST, CAM_PORT + DEPTH_PORT_OFFSET + camera.cam_id, "Depth"
+                        )
                     )
-                )
+
         if collect_state:
             self.state_socket = create_response_socket(HOST, STATE_PORT)
 
@@ -66,21 +67,21 @@ class DataCollector:
         self.run_event.set()
         self.threads = []
 
-        for cam_idx, _ in enumerate(cams):
+        # Set up image subscribers
+        for camera in cams:
             if collect_img:
                 self.threads.append(
                     threading.Thread(
                         target=self.save_rgb,
-                        args=(cam_idx, cam_config),
+                        args=(camera.cam_id, cam_config[camera.type]),
                         daemon=True,
                     )
                 )
-
-            if collect_depth:
+            if collect_depth and camera.type == "realsense":
                 self.threads.append(
                     threading.Thread(
                         target=self.save_depth,
-                        args=(cam_idx, cam_config),
+                        args=(camera.cam_id, cam_config[camera.type]),
                         daemon=True,
                     )
                 )
@@ -94,13 +95,12 @@ class DataCollector:
     def start(self):
         for thread in self.threads:
             thread.start()
-
         try:
             while True:
                 pass
         except KeyboardInterrupt:
-            print("Stopping the data collection...")
-            self.run_event.clear()
+            print("Stopping data collection...")
+            self.run_event.clear()  # Ensure this clears the event to stop threads
             for thread in self.threads:
                 thread.join()
 
@@ -113,8 +113,8 @@ class DataCollector:
         recorder = cv2.VideoWriter(
             str(filename),
             cv2.VideoWriter_fourcc(*"XVID"),
-            cam_config.fps,
-            (cam_config.width, cam_config.height),
+            cam_config["fps"],
+            (cam_config["width"], cam_config["height"]),
         )
 
         timestamps = []
@@ -126,30 +126,26 @@ class DataCollector:
             filename=filename,
             record_start_time=time.time(),
         )
-        num_image_frames = 0
 
-        while self.run_event.is_set():
-            rgb_image, timestamp = self.image_subscribers[cam_idx].recv_rgb_image()
-            # Save the image
-            recorder.write(rgb_image)
-            timestamps.append(timestamp)
-            num_image_frames += 1
-
-        print("finished recording")
-
-        record_end_time = time.time()
-        metadata["record_end_time"] = record_end_time
-        metadata["num_image_frames"] = num_image_frames
-        metadata["timestamps"] = timestamps
-        recorder.release()
-        with open(metadata_filename, "wb") as f:
-            pickle.dump(metadata, f)
-
-        print("Saved RGB video to ", filename)
-        self.image_subscribers[cam_idx].stop()
+        try:
+            # Loop to capture frames until stopped
+            while self.run_event.is_set():
+                rgb_image, timestamp = self.image_subscribers[cam_idx].recv_rgb_image()
+                recorder.write(rgb_image)
+                timestamps.append(timestamp)
+        finally:
+            # Ensure resources are released regardless of exit conditions
+            recorder.release()
+            metadata["record_end_time"] = time.time()
+            metadata["num_image_frames"] = len(timestamps)
+            metadata["timestamps"] = timestamps
+            with open(metadata_filename, "wb") as f:
+                pickle.dump(metadata, f)
+            self.image_subscribers[cam_idx].stop()
+            print(f"Saved video to {filename}")
 
     def save_depth(self, cam_idx, cam_config):
-        pass
+        raise NotImplementedError("Depth recording is not yet implemented")
 
     def save_states(self):
         notify_component_start(component_name="State Collector")
@@ -183,8 +179,6 @@ class DataCollector:
 
         print("Finished recording Reskin frames")
 
-        # Writing to dataset
-        print("Compressing Reskin sensor data...")
         with h5py.File(filename, "w") as hf:
             for key in sensor_information.keys():
                 sensor_information[key] = np.array(
