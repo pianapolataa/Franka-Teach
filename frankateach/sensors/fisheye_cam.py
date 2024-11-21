@@ -18,10 +18,9 @@ class FishEyeCamera:
     ):
         # Disabling scientific notations
         np.set_printoptions(suppress=True)
-        self.cam_id = 24
+        self.cam_id = cam_id
         self.cam_config = cam_config
         self._cam_serial_num = cam_config.cam_serial_num
-        # self.output_file = output_file
 
         # Different publishers to avoid overload
         self.rgb_publisher = ZMQCameraPublisher(host, port)
@@ -46,7 +45,7 @@ class FishEyeCamera:
     def get_rgb_depth_images(self):
         frame = None
         while frame is None:
-            ret, frame = self.cap.read()
+            _, frame = self.cap.read()
         timestamp = time.time()
         return frame, timestamp
 
