@@ -3,6 +3,7 @@ import numpy as np
 # Network constants
 HOST = "localhost"
 CAM_PORT = 10005
+FISHEYE_CAM_PORT = 10010
 VR_CONTROLLER_STATE_PORT = 8889
 STATE_PORT = 8900
 CONTROL_PORT = 8901
