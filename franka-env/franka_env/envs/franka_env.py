@@ -26,7 +26,7 @@ class FrankaEnv(gym.Env):
         width=640,
         height=480,
         use_robot=True,
-        sensor_type="reskin",
+        sensor_type=None,
         sensor_params=None,
     ):
         super(FrankaEnv, self).__init__()
@@ -54,9 +54,39 @@ class FrankaEnv(gym.Env):
         self.action_space = gym.spaces.Box(
             low=-float("inf"), high=float("inf"), shape=(self.action_dim,)
         )
-        self.observation_space = gym.spaces.Box(
-            low=0, high=255, shape=(height, width, self.n_channels), dtype=np.uint8
+        obs_space = {
+            f"pixels{cam_id}": gym.spaces.Box(
+                low=0, high=255, shape=(height, width, self.n_channels), dtype=np.uint8
+            )
+            for cam_id in cam_ids
+        }
+        obs_space["features"] = gym.spaces.Box(
+            low=-float("inf"),
+            high=float("inf"),
+            shape=(self.feature_dim,),
+            dtype=np.float32,
         )
+        obs_space["proprioceptive"] = gym.spaces.Box(
+            low=-float("inf"),
+            high=float("inf"),
+            shape=(self.feature_dim,),
+            dtype=np.float32,
+        )
+        if self.sensor_type == "reskin":
+            for sensor_idx in range(self.n_sensors):
+                obs_space[f"sensor{sensor_idx}"] = gym.spaces.Box(
+                    low=-float("inf"),
+                    high=float("inf"),
+                    shape=(self.sensor_dim,),
+                    dtype=np.float32,
+                )
+                obs_space[f"sensor{sensor_idx}_diffs"] = gym.spaces.Box(
+                    low=-float("inf"),
+                    high=float("inf"),
+                    shape=(self.sensor_dim,),
+                    dtype=np.float32,
+                )
+        self.observation_space = gym.spaces.Dict(obs_space)
 
         if self.use_robot:
             self.image_subscribers = []
@@ -139,63 +169,49 @@ class FrankaEnv(gym.Env):
         return obs, self.reward, False, None
 
     def reset(self):
-        if self.use_robot:
-            print("resetting")
-            # TODO: send b"reset" to the robot instead of this action
-            franka_action = FrankaAction(
-                pos=np.zeros(3),
-                quat=np.zeros(4),
-                gripper=GRIPPER_OPEN,
-                reset=True,
-                timestamp=time.time(),
-            )
+        print("resetting")
+        # TODO: send b"reset" to the robot instead of this action
+        franka_reset_action = FrankaAction(
+            pos=np.zeros(3),
+            quat=np.zeros(4),
+            gripper=GRIPPER_OPEN,
+            reset=True,
+            timestamp=time.time(),
+        )
 
-            self.action_request_socket.send(
-                bytes(pickle.dumps(franka_action, protocol=-1))
-            )
-            franka_state: FrankaState = pickle.loads(self.action_request_socket.recv())
-            self.franka_state = franka_state
-            print("reset done: ", franka_state)
+        self.action_request_socket.send(
+            bytes(pickle.dumps(franka_reset_action, protocol=-1))
+        )
+        franka_state: FrankaState = pickle.loads(self.action_request_socket.recv())
+        self.franka_state = franka_state
+        print("reset done: ", franka_state)
 
-            image_list = []
-            for subscriber in self.image_subscribers:
-                image, _ = subscriber.recv_rgb_image()
-                image_list.append(image)
+        image_list = []
+        for subscriber in self.image_subscribers:
+            image, _ = subscriber.recv_rgb_image()
+            image_list.append(image)
 
-            self.curr_images = image_list
+        self.curr_images = image_list
 
-            obs = {
-                "features": np.concatenate(
-                    (franka_state.pos, franka_state.quat, [franka_state.gripper])
-                ),
-                "proprioceptive": np.concatenate(
-                    (franka_state.pos, franka_state.quat, [franka_state.gripper])
-                ),
-            }
-            if self.sensor_type == "reskin":
-                try:
-                    reskin_state = self._get_reskin_state(update_baseline=True)
-                    obs.update(reskin_state)
-                except KeyError:
-                    pass
+        obs = {
+            "features": np.concatenate(
+                (franka_state.pos, franka_state.quat, [franka_state.gripper])
+            ),
+            "proprioceptive": np.concatenate(
+                (franka_state.pos, franka_state.quat, [franka_state.gripper])
+            ),
+        }
+        if self.sensor_type == "reskin":
+            try:
+                reskin_state = self._get_reskin_state(update_baseline=True)
+                obs.update(reskin_state)
+            except KeyError:
+                pass
 
-            for i, image in enumerate(image_list):
-                obs[f"pixels{i}"] = cv2.resize(image, (self.width, self.height))
+        for i, image in enumerate(image_list):
+            obs[f"pixels{i}"] = cv2.resize(image, (self.width, self.height))
 
-            return obs
-
-        else:
-            # TODO: Remove this nonsensical dependency on the robot
-            obs = {}
-            obs["features"] = np.zeros(self.feature_dim)
-            obs["proprioceptive"] = np.zeros(self.feature_dim)
-            for sensor_idx in range(self.n_sensors):
-                obs[f"sensor{sensor_idx}"] = np.zeros(self.sensor_dim)
-                obs[f"sensor{sensor_idx}_diffs"] = np.zeros(self.sensor_dim)
-            self.sensor_baseline = np.zeros(self.sensor_dim * self.n_sensors)
-            obs["pixels"] = np.zeros((self.height, self.width, self.n_channels))
-
-            return obs
+        return obs
 
     def _get_reskin_state(self, update_baseline=False):
         sensor_state = self.sensor_subscriber.get_sensor_state()
