@@ -40,6 +40,9 @@ class FrankaEnv(gym.Env):
         self.sensor_type = sensor_type
         if sensor_type is not None:
             assert sensor_type in ["reskin"]
+            if sensor_type == "reskin":
+                self.n_sensors = 2
+                self.sensor_dim = 15
         self.sensor_params = sensor_params
 
         self.n_channels = 3
@@ -68,8 +71,6 @@ class FrankaEnv(gym.Env):
                 )
             if self.sensor_type == "reskin":
                 self.sensor_subscriber = ReskinSensorSubscriber()
-                self.n_sensors = 2
-                self.sensor_dim = 15
 
                 self.sensor_prev_state = None
                 self.subtract_sensor_baseline = sensor_params[
