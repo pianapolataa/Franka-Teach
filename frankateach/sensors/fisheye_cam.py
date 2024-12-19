@@ -1,7 +1,7 @@
 import numpy as np
 
 from frankateach.constants import CAM_FPS
-from frankateach.utils import FrequencyTimer
+from frankateach.utils import FrequencyTimer, notify_component_start
 from frankateach.network import ZMQCameraPublisher
 
 import cv2
@@ -30,14 +30,12 @@ class FishEyeCamera:
         self._start_fisheye()
 
     def _start_fisheye(self):
-        print("Cam Id is ", self.cam_id)
-        self.cap = cv2.VideoCapture(self.cam_id)
+        self.cap = cv2.VideoCapture(self._cam_serial_num)
         # self.cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*'MJPG'))
 
         self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 680)
         self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
 
-        print("Cap is ", self.cap.isOpened())
         # Check if the camera is opened successfully, wait until it is
         while not self.cap.isOpened():
             self.cap.isOpened()
@@ -58,6 +56,7 @@ class FishEyeCamera:
         return cv2.resize(image, (width, height), interpolation=cv2.INTER_AREA)
 
     def stream(self):
+        notify_component_start("fisheye camera")
         print(f"Started the pipeline for FishEye camera: {self.cam_id}!")
 
         try:

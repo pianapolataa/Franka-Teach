@@ -16,13 +16,18 @@ from frankateach.network import (
     ZMQCameraSubscriber,
     create_request_socket,
 )
-from frankateach.sensors.reskin import ReskinSensorSubscriber
+
+try:
+    from frankateach.sensors.reskin import ReskinSensorSubscriber
+except ImportError:
+    print("ReskinSensorSubscriber not found")
+    ReskinSensorSubscriber = None
 
 
 class FrankaEnv(gym.Env):
     def __init__(
         self,
-        cam_ids=[1, 2, 3, 4],
+        cam_ids=[1, 2, 3, 4, 51],
         width=640,
         height=480,
         use_robot=True,
@@ -40,6 +45,9 @@ class FrankaEnv(gym.Env):
         self.sensor_type = sensor_type
         if sensor_type is not None:
             assert sensor_type in ["reskin"]
+            assert (
+                ReskinSensorSubscriber is not None
+            ), "ReskinSensorSubscriber not found"
             if sensor_type == "reskin":
                 self.n_sensors = 2
                 self.sensor_dim = 15
@@ -89,16 +97,15 @@ class FrankaEnv(gym.Env):
         self.observation_space = gym.spaces.Dict(obs_space)
 
         if self.use_robot:
-            self.image_subscribers = []
+            self.image_subscribers = {}
             for cam_idx in cam_ids:
                 port = CAM_PORT + cam_idx
-                self.image_subscribers.append(
-                    ZMQCameraSubscriber(
-                        host=HOST,
-                        port=port,
-                        topic_type="RGB",
-                    )
+                self.image_subscribers[cam_idx] = ZMQCameraSubscriber(
+                    host=HOST,
+                    port=port,
+                    topic_type="RGB",
                 )
+
             if self.sensor_type == "reskin":
                 self.sensor_subscriber = ReskinSensorSubscriber()
 
@@ -141,12 +148,13 @@ class FrankaEnv(gym.Env):
         franka_state: FrankaState = pickle.loads(self.action_request_socket.recv())
         self.franka_state = franka_state
 
-        image_list = []
-        for subscriber in self.image_subscribers:
+        image_dict = {}
+        self.curr_images = []
+        for cam_id, subscriber in self.image_subscribers.items():
             image, _ = subscriber.recv_rgb_image()
-            image_list.append(image)
-
-        self.curr_images = image_list
+            image_dict[f"pixels{cam_id}"] = cv2.resize(image, (self.width, self.height))
+            self.curr_images.append(image)
+        print("inside step")
 
         obs = {
             "features": np.concatenate(
@@ -163,10 +171,11 @@ class FrankaEnv(gym.Env):
             except KeyError:
                 pass
 
-        for i, image in enumerate(image_list):
-            obs[f"pixels{i}"] = cv2.resize(image, (self.width, self.height))
-
-        return obs, self.reward, False, None
+        obs.update(image_dict)
+        # for i, image in image_dict.items():
+        #     obs[f"pixels{i}"] = cv2.resize(image, (self.width, self.height))
+        print("returning obs")
+        return obs, self.reward, False, {}
 
     def reset(self):
         print("resetting")
@@ -186,12 +195,12 @@ class FrankaEnv(gym.Env):
         self.franka_state = franka_state
         print("reset done: ", franka_state)
 
-        image_list = []
-        for subscriber in self.image_subscribers:
+        image_dict = {}
+        self.curr_images = []
+        for cam_id, subscriber in self.image_subscribers.items():
             image, _ = subscriber.recv_rgb_image()
-            image_list.append(image)
-
-        self.curr_images = image_list
+            image_dict[f"pixels{cam_id}"] = cv2.resize(image, (self.width, self.height))
+            self.curr_images.append(image)
 
         obs = {
             "features": np.concatenate(
@@ -208,9 +217,10 @@ class FrankaEnv(gym.Env):
             except KeyError:
                 pass
 
-        for i, image in enumerate(image_list):
-            obs[f"pixels{i}"] = cv2.resize(image, (self.width, self.height))
-
+        obs.update(image_dict)
+        # for i, image in enumerate(image_list):
+        #     obs[f"pixels{i}"] = cv2.resize(image, (self.width, self.height))
+        print("returning obs")
         return obs
 
     def _get_reskin_state(self, update_baseline=False):
@@ -219,11 +229,16 @@ class FrankaEnv(gym.Env):
         if update_baseline:
             baseline_meas = []
             while len(baseline_meas) < 5:
-                self.action_request_socket.send(b"get_sensor_state")
-                ret = pickle.loads(self.action_request_socket.recv())
-                sensor_state = ret["reskin"]["sensor_values"]
-                baseline_meas.append(sensor_state)
+                sensor_state = self.sensor_subscriber.get_sensor_state()
+                sensor_values = np.array(
+                    sensor_state["sensor_values"], dtype=np.float32
+                )
+                baseline_meas.append(sensor_values)
             self.sensor_baseline = np.mean(baseline_meas, axis=0)
+            if self.subtract_sensor_baseline:
+                self.sensor_prev_state = sensor_values - self.sensor_baseline
+            else:
+                self.sensor_prev_state = sensor_values
         if self.subtract_sensor_baseline:
             sensor_values = sensor_values - self.sensor_baseline
 
