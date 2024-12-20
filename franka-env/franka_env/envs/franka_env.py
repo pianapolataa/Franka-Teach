@@ -154,7 +154,6 @@ class FrankaEnv(gym.Env):
             image, _ = subscriber.recv_rgb_image()
             image_dict[f"pixels{cam_id}"] = cv2.resize(image, (self.width, self.height))
             self.curr_images.append(image)
-        print("inside step")
 
         obs = {
             "features": np.concatenate(
@@ -174,8 +173,7 @@ class FrankaEnv(gym.Env):
         obs.update(image_dict)
         # for i, image in image_dict.items():
         #     obs[f"pixels{i}"] = cv2.resize(image, (self.width, self.height))
-        print("returning obs")
-        return obs, self.reward, False, {}
+        return obs, self.reward, False, False, {}
 
     def reset(self):
         print("resetting")
