@@ -3,6 +3,7 @@ import pickle
 from frankateach.utils import notify_component_start
 from frankateach.network import ZMQKeypointSubscriber, create_request_socket
 from frankateach.constants import (
+    COMMANDED_STATE_PORT,
     CONTROL_PORT,
     HOST,
     STATE_PORT,
@@ -46,6 +47,7 @@ class FrankaOperator:
 
         self.action_socket = create_request_socket(HOST, CONTROL_PORT)
         self.state_socket = create_request_socket(HOST, STATE_PORT)
+        self.commanded_state_socket = create_request_socket(HOST, COMMANDED_STATE_PORT)
 
         # Class variables
         self._save_states = save_states
@@ -158,6 +160,8 @@ class FrankaOperator:
             #           tic = time.time()
             self.state_socket.send(robot_state)
             self.state_socket.recv()
+            self.commanded_state_socket.send(action)
+            self.commanded_state_socket.recv()
 
     #             print(f"Saving state takes: {time.time() - tic}")
 

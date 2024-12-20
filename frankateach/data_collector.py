@@ -15,6 +15,7 @@ from frankateach.sensors.reskin import ReskinSensorSubscriber
 from frankateach.utils import notify_component_start
 
 from frankateach.constants import (
+    COMMANDED_STATE_PORT,
     HOST,
     CAM_PORT,
     STATE_PORT,
@@ -52,6 +53,9 @@ class DataCollector:
 
         if collect_state:
             self.state_socket = create_response_socket(HOST, STATE_PORT)
+            self.commanded_state_socket = create_response_socket(
+                HOST, COMMANDED_STATE_PORT
+            )
 
         if collect_reskin:
             self.reskin_subscriber = ReskinSensorSubscriber()
@@ -149,18 +153,27 @@ class DataCollector:
         notify_component_start(component_name="State Collector")
 
         filename = self.storage_path / "states.pkl"
+        cmd_filename = self.storage_path / "commanded_states.pkl"
         states = []
+        commanded_states = []
 
         while self.run_event.is_set():
             state = pickle.loads(self.state_socket.recv())
             self.state_socket.send(b"ok")
+            commanded_state = pickle.loads(self.commanded_state_socket.recv())
+            self.commanded_state_socket.send(b"ok")
             states.append(state)
+            commanded_states.append(commanded_state)
 
         with open(filename, "wb") as f:
             pickle.dump(states, f)
 
+        with open(cmd_filename, "wb") as f:
+            pickle.dump(commanded_states, f)
+
         print("Saved states to ", filename)
         self.state_socket.close()
+        self.commanded_state_socket.close()
 
     def save_reskin(self):
         notify_component_start(component_name="Reskin Collector")
