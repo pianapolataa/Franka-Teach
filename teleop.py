@@ -2,11 +2,11 @@ import hydra
 from multiprocessing import Process
 from frankateach.teleoperator import FrankaOperator
 from frankateach.oculus_stick import OculusVRStickDetector
-from frankateach.constants import HOST, VR_CONTROLLER_STATE_PORT
+from frankateach.constants import GRIPPER_OPEN, HOST, VR_CONTROLLER_STATE_PORT
 
 
-def start_teleop(save_states=False):
-    operator = FrankaOperator(save_states)
+def start_teleop(save_states=False, init_gripper_state=GRIPPER_OPEN):
+    operator = FrankaOperator(save_states, init_gripper_state=init_gripper_state)
     operator.stream()
 
 

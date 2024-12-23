@@ -14,7 +14,7 @@ STATE_TOPIC = "state"
 CONTROL_TOPIC = "control"
 
 # VR constants
-VR_TCP_HOST = "10.19.128.106"
+VR_TCP_HOST = "10.19.225.15"
 VR_TCP_PORT = 5555
 VR_CONTROLLER_TOPIC = b"oculus_controller"
 
@@ -35,6 +35,7 @@ ROTATION_VELOCITY_LIMIT = 0.5
 TRANSLATION_VELOCITY_LIMIT = 1
 
 # Frequencies
+# TODO: Separate VR and deploy frequencies
 VR_FREQ = 90
 STATE_FREQ = 100
 CAM_FPS = 30

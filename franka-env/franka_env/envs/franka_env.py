@@ -129,7 +129,7 @@ class FrankaEnv(gym.Env):
         pos = abs_action[:3]
         quat = abs_action[3:7]
         gripper = abs_action[-1]
-        if gripper > 0.5:
+        if gripper < 0.0:
             gripper = GRIPPER_OPEN
         else:
             gripper = GRIPPER_CLOSE
