@@ -1,2 +1,2 @@
 save_states: true
-init_gripper_state: 1
+init_gripper_state: open # open, close

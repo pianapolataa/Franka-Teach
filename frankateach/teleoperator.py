@@ -3,7 +3,6 @@ import pickle
 from frankateach.utils import notify_component_start
 from frankateach.network import ZMQKeypointSubscriber, create_request_socket
 from frankateach.constants import (
-    COMMANDED_STATE_PORT,
     CONTROL_PORT,
     HOST,
     STATE_PORT,
@@ -39,7 +38,7 @@ def get_relative_affine(init_affine, current_affine):
 
 
 class FrankaOperator:
-    def __init__(self, save_states=False, init_gripper_state=GRIPPER_CLOSE) -> None:
+    def __init__(self, save_states=False, init_gripper_state="open") -> None:
         # Subscribe controller state
         self._controller_state_subscriber = ZMQKeypointSubscriber(
             host=HOST, port=VR_CONTROLLER_STATE_PORT, topic="controller_state"
@@ -47,12 +46,14 @@ class FrankaOperator:
 
         self.action_socket = create_request_socket(HOST, CONTROL_PORT)
         self.state_socket = create_request_socket(HOST, STATE_PORT)
-        self.commanded_state_socket = create_request_socket(HOST, COMMANDED_STATE_PORT)
+        # self.commanded_state_socket = create_request_socket(HOST, COMMANDED_STATE_PORT)
 
         # Class variables
         self._save_states = save_states
         self.is_first_frame = True
-        self.gripper_state = init_gripper_state
+        self.gripper_state = (
+            GRIPPER_OPEN if init_gripper_state == "open" else GRIPPER_CLOSE
+        )
         self.start_teleop = False
         self.init_affine = None
 
@@ -160,8 +161,8 @@ class FrankaOperator:
             #           tic = time.time()
             self.state_socket.send(robot_state)
             self.state_socket.recv()
-            self.commanded_state_socket.send(action)
-            self.commanded_state_socket.recv()
+            # self.commanded_state_socket.send(action)
+            # self.commanded_state_socket.recv()
 
     #             print(f"Saving state takes: {time.time() - tic}")
 
