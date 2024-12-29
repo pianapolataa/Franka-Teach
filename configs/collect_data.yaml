@@ -3,7 +3,7 @@ defaults:
   - camera
 
 # storage_path: "/home/venky/franka/data/extracted_data/1027_plug_test"
-storage_path: "/home/siddhant/github/Franka-Teach/data/extracted_data/1227_test"
+storage_path: "/home/siddhant/github/Franka-Teach/data/extracted_data/1229_test_human_data"
 demo_num: 0
 collect_img: True
 collect_depth: False

@@ -60,7 +60,9 @@ class FrankaServer:
                 else:
                     franka_control: FrankaAction = pickle.loads(command)
                     if franka_control.reset:
-                        self._robot.reset_joints(gripper_open=True)
+                        self._robot.reset_joints(
+                            gripper_open=franka_control.gripper
+                        )  # True)
                         time.sleep(1)
                     else:
                         self._robot.osc_move(
@@ -179,5 +181,3 @@ class Robot(FrankaInterface):
             if end_time - start_time > timeout:
                 break
         return True
-
-

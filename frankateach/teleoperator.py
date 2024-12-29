@@ -38,7 +38,9 @@ def get_relative_affine(init_affine, current_affine):
 
 
 class FrankaOperator:
-    def __init__(self, save_states=False, init_gripper_state="open", teleop_mode="robot") -> None:
+    def __init__(
+        self, save_states=False, init_gripper_state="open", teleop_mode="robot"
+    ) -> None:
         # Subscribe controller state
         self._controller_state_subscriber = ZMQKeypointSubscriber(
             host=HOST, port=VR_CONTROLLER_STATE_PORT, topic="controller_state"
@@ -154,19 +156,18 @@ class FrankaOperator:
             timestamp=time.time(),
         )
 
-        # tic = time.time()
         self.action_socket.send(bytes(pickle.dumps(action, protocol=-1)))
         robot_state = self.action_socket.recv()
-        #       print(f"Action takes: {time.time() - tic}")
 
         if self._save_states:
-            #           tic = time.time()
-            self.state_socket.send(robot_state)
+            robot_state = pickle.loads(robot_state)
+            robot_state.start_teleop = self.start_teleop
+            self.state_socket.send(bytes(pickle.dumps(robot_state, protocol=-1)))
+
+            # self.state_socket.send(robot_state)
             self.state_socket.recv()
             # self.commanded_state_socket.send(action)
             # self.commanded_state_socket.recv()
-
-    #             print(f"Saving state takes: {time.time() - tic}")
 
     def stream(self):
         notify_component_start("Franka teleoperator control")
