@@ -60,9 +60,7 @@ class FrankaServer:
                 else:
                     franka_control: FrankaAction = pickle.loads(command)
                     if franka_control.reset:
-                        self._robot.reset_joints(
-                            gripper_open=franka_control.gripper
-                        )  # True)
+                        self._robot.reset_joints(gripper_open=franka_control.gripper)
                         time.sleep(1)
                     else:
                         self._robot.osc_move(
@@ -70,7 +68,6 @@ class FrankaServer:
                             franka_control.quat,
                             franka_control.gripper,
                         )
-                        # time.sleep(0.1)
                     self.action_socket.send(self.get_state())
         except KeyboardInterrupt:
             pass

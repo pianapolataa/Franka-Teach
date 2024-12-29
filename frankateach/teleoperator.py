@@ -43,7 +43,6 @@ def get_relative_affine(init_affine, current_affine):
 
 class FrankaOperator:
     def __init__(
-        # self, save_states=False, init_gripper_state="open", teleop_mode="robot"
         self,
         init_gripper_state="open",
         teleop_mode="robot",
@@ -54,7 +53,6 @@ class FrankaOperator:
         )
 
         self.action_socket = create_request_socket(HOST, CONTROL_PORT)
-        # self.state_socket = create_request_socket(HOST, STATE_PORT)
         self.state_socket = ZMQKeypointPublisher(HOST, STATE_PORT)
         # self.commanded_state_socket = create_request_socket(HOST, COMMANDED_STATE_PORT)
 
@@ -147,15 +145,6 @@ class FrankaOperator:
                 transform_utils.mat2quat(self.home_rot),
             )
 
-        # Save the states here
-        # quat, pos = self._robot.last_eef_quat_and_pos
-        # self._poses.append(np.concatenate((pos.flatten(), quat.flatten())))
-        # self._commanded_poses.append(
-        #     np.concatenate((target_pos.flatten(), target_quat.flatten()))
-        # )
-        # self._gripper_states.append(self.gripper_state)
-        # self._timestamps.append(time.time())
-
         action = FrankaAction(
             pos=target_pos.flatten().astype(np.float32),
             quat=target_quat.flatten().astype(np.float32),
@@ -167,14 +156,11 @@ class FrankaOperator:
         self.action_socket.send(bytes(pickle.dumps(action, protocol=-1)))
         robot_state = self.action_socket.recv()
 
-        # if self._save_states:
         robot_state = pickle.loads(robot_state)
         robot_state.start_teleop = self.start_teleop
         # self.state_socket.send(bytes(pickle.dumps(robot_state, protocol=-1)))
         self.state_socket.pub_keypoints(robot_state, "robot_state")
 
-        # self.state_socket.send(robot_state)
-        # self.state_socket.recv()
         # self.commanded_state_socket.send(action)
         # self.commanded_state_socket.recv()
 
