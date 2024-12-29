@@ -1,2 +1,3 @@
 save_states: true
 init_gripper_state: open # open, close
+teleop_mode: robot # robot, human

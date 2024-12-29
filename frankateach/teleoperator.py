@@ -38,7 +38,7 @@ def get_relative_affine(init_affine, current_affine):
 
 
 class FrankaOperator:
-    def __init__(self, save_states=False, init_gripper_state="open") -> None:
+    def __init__(self, save_states=False, init_gripper_state="open", teleop_mode="robot") -> None:
         # Subscribe controller state
         self._controller_state_subscriber = ZMQKeypointSubscriber(
             host=HOST, port=VR_CONTROLLER_STATE_PORT, topic="controller_state"
@@ -56,6 +56,7 @@ class FrankaOperator:
         )
         self.start_teleop = False
         self.init_affine = None
+        self.teleop_mode = teleop_mode
 
     def _apply_retargeted_angles(self) -> None:
         self.controller_state = self._controller_state_subscriber.recv_keypoints()
@@ -65,7 +66,7 @@ class FrankaOperator:
             action = FrankaAction(
                 pos=np.zeros(3),
                 quat=np.zeros(4),
-                gripper=GRIPPER_OPEN,
+                gripper=self.gripper_state,
                 reset=True,
                 timestamp=time.time(),
             )
@@ -96,7 +97,7 @@ class FrankaOperator:
                 robot_state.pos,
             )
 
-        if self.start_teleop:
+        if self.start_teleop and self.teleop_mode == "robot":
             relative_affine = get_relative_affine(
                 self.init_affine, self.controller_state.right_affine
             )
@@ -105,15 +106,16 @@ class FrankaOperator:
             relative_affine[3, 3] = 1
 
         gripper_action = None
-        if self.controller_state.right_index_trigger > 0.5:
-            gripper_action = GRIPPER_CLOSE
-        elif self.controller_state.right_hand_trigger > 0.5:
-            gripper_action = GRIPPER_OPEN
+        if self.teleop_mode == "robot":
+            if self.controller_state.right_index_trigger > 0.5:
+                gripper_action = GRIPPER_CLOSE
+            elif self.controller_state.right_hand_trigger > 0.5:
+                gripper_action = GRIPPER_OPEN
 
         if gripper_action is not None and gripper_action != self.gripper_state:
             self.gripper_state = gripper_action
 
-        if self.start_teleop:
+        if self.start_teleop and self.teleop_mode == "robot":
             relative_pos, relative_rot = (
                 relative_affine[:3, 3],
                 relative_affine[:3, :3],
