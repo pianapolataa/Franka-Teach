@@ -1,7 +1,11 @@
 import time
 import pickle
 from frankateach.utils import notify_component_start
-from frankateach.network import ZMQKeypointSubscriber, create_request_socket
+from frankateach.network import (
+    ZMQKeypointSubscriber,
+    create_request_socket,
+    ZMQKeypointPublisher,
+)
 from frankateach.constants import (
     CONTROL_PORT,
     HOST,
@@ -39,7 +43,10 @@ def get_relative_affine(init_affine, current_affine):
 
 class FrankaOperator:
     def __init__(
-        self, save_states=False, init_gripper_state="open", teleop_mode="robot"
+        # self, save_states=False, init_gripper_state="open", teleop_mode="robot"
+        self,
+        init_gripper_state="open",
+        teleop_mode="robot",
     ) -> None:
         # Subscribe controller state
         self._controller_state_subscriber = ZMQKeypointSubscriber(
@@ -47,11 +54,12 @@ class FrankaOperator:
         )
 
         self.action_socket = create_request_socket(HOST, CONTROL_PORT)
-        self.state_socket = create_request_socket(HOST, STATE_PORT)
+        # self.state_socket = create_request_socket(HOST, STATE_PORT)
+        self.state_socket = ZMQKeypointPublisher(HOST, STATE_PORT)
         # self.commanded_state_socket = create_request_socket(HOST, COMMANDED_STATE_PORT)
 
         # Class variables
-        self._save_states = save_states
+        # self._save_states = save_states
         self.is_first_frame = True
         self.gripper_state = (
             GRIPPER_OPEN if init_gripper_state == "open" else GRIPPER_CLOSE
@@ -159,15 +167,16 @@ class FrankaOperator:
         self.action_socket.send(bytes(pickle.dumps(action, protocol=-1)))
         robot_state = self.action_socket.recv()
 
-        if self._save_states:
-            robot_state = pickle.loads(robot_state)
-            robot_state.start_teleop = self.start_teleop
-            self.state_socket.send(bytes(pickle.dumps(robot_state, protocol=-1)))
+        # if self._save_states:
+        robot_state = pickle.loads(robot_state)
+        robot_state.start_teleop = self.start_teleop
+        # self.state_socket.send(bytes(pickle.dumps(robot_state, protocol=-1)))
+        self.state_socket.pub_keypoints(robot_state, "robot_state")
 
-            # self.state_socket.send(robot_state)
-            self.state_socket.recv()
-            # self.commanded_state_socket.send(action)
-            # self.commanded_state_socket.recv()
+        # self.state_socket.send(robot_state)
+        # self.state_socket.recv()
+        # self.commanded_state_socket.send(action)
+        # self.commanded_state_socket.recv()
 
     def stream(self):
         notify_component_start("Franka teleoperator control")

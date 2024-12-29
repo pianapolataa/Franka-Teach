@@ -10,6 +10,7 @@ import numpy as np
 from frankateach.network import (
     ZMQCameraSubscriber,
     create_response_socket,
+    ZMQKeypointSubscriber,
 )
 from frankateach.sensors.reskin import ReskinSensorSubscriber
 from frankateach.utils import notify_component_start
@@ -52,7 +53,10 @@ class DataCollector:
                     )
 
         if collect_state:
-            self.state_socket = create_response_socket(HOST, STATE_PORT)
+            self.state_socket = ZMQKeypointSubscriber(
+                host=HOST, port=STATE_PORT, topic="robot_state"
+            )
+            # self.state_socket = create_response_socket(HOST, STATE_PORT)
             self.commanded_state_socket = create_response_socket(
                 HOST, COMMANDED_STATE_PORT
             )
@@ -158,8 +162,9 @@ class DataCollector:
         # commanded_states = []
 
         while self.run_event.is_set():
-            state = pickle.loads(self.state_socket.recv())
-            self.state_socket.send(b"ok")
+            # state = pickle.loads(self.state_socket.recv())
+            state = self.state_socket.recv_keypoints()
+            # self.state_socket.send(b"ok")
             # commanded_state = pickle.loads(self.commanded_state_socket.recv())
             # self.commanded_state_socket.send(b"ok")
             states.append(state)
@@ -172,7 +177,8 @@ class DataCollector:
         #     pickle.dump(commanded_states, f)
 
         print("Saved states to ", filename)
-        self.state_socket.close()
+        # self.state_socket.close()
+        self.state_socket.stop()
         # self.commanded_state_socket.close()
 
     def save_reskin(self):
