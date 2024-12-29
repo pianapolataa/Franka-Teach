@@ -81,6 +81,19 @@ class FrankaOperator:
             self.action_socket.send(bytes(pickle.dumps(action, protocol=-1)))
             robot_state = pickle.loads(self.action_socket.recv())
 
+            # for _ in range(2):
+            #     action = FrankaAction(
+            #     pos=np.array([0., 0.0321814, 0.2653815]),
+            #     quat=np.array([0.9998586, 0.00880853, 0.01421072, 0.00179784]),
+            #     gripper=self.gripper_state,
+            #     reset=False,
+            #     timestamp=time.time(),
+            #     )
+            #     self.action_socket.send(bytes(pickle.dumps(action, protocol=-1)))
+            #     robot_state = pickle.loads(self.action_socket.recv())
+            #     time.sleep(0.2)
+            # HOME <- Pos: [0.457632  0.0321814 0.2653815], Quat: [0.9998586  0.00880853 0.01421072 0.00179784]
+
             print(robot_state)
             self.home_rot, self.home_pos = (
                 transform_utils.quat2mat(robot_state.quat),
