@@ -46,6 +46,7 @@ class FrankaOperator:
         self,
         init_gripper_state="open",
         teleop_mode="robot",
+        home_offset=[0, 0, 0],
     ) -> None:
         # Subscribe controller state
         self._controller_state_subscriber = ZMQKeypointSubscriber(
@@ -65,6 +66,9 @@ class FrankaOperator:
         self.start_teleop = False
         self.init_affine = None
         self.teleop_mode = teleop_mode
+        self.home_offset = (
+            np.array(home_offset) if home_offset is not None else np.zeros(3)
+        )
 
     def _apply_retargeted_angles(self) -> None:
         self.controller_state = self._controller_state_subscriber.recv_keypoints()
@@ -80,18 +84,6 @@ class FrankaOperator:
             )
             self.action_socket.send(bytes(pickle.dumps(action, protocol=-1)))
             robot_state = pickle.loads(self.action_socket.recv())
-
-            # for _ in range(2):
-            #     action = FrankaAction(
-            #     pos=np.array([0., 0.0321814, 0.2653815]),
-            #     quat=np.array([0.9998586, 0.00880853, 0.01421072, 0.00179784]),
-            #     gripper=self.gripper_state,
-            #     reset=False,
-            #     timestamp=time.time(),
-            #     )
-            #     self.action_socket.send(bytes(pickle.dumps(action, protocol=-1)))
-            #     robot_state = pickle.loads(self.action_socket.recv())
-            #     time.sleep(0.2)
             # HOME <- Pos: [0.457632  0.0321814 0.2653815], Quat: [0.9998586  0.00880853 0.01421072 0.00179784]
 
             print(robot_state)
@@ -154,7 +146,7 @@ class FrankaOperator:
 
         else:
             target_pos, target_quat = (
-                self.home_pos,
+                self.home_pos + self.home_offset,
                 transform_utils.mat2quat(self.home_rot),
             )
 
