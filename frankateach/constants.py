@@ -36,7 +36,8 @@ TRANSLATION_VELOCITY_LIMIT = 1
 
 # Frequencies
 # TODO: Separate VR and deploy frequencies
-VR_FREQ = 90
+VR_FREQ = 20
+CONTROL_FREQ = 20
 STATE_FREQ = 100
 CAM_FPS = 30
 DEPTH_PORT_OFFSET = 1000

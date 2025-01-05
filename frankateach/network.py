@@ -7,6 +7,18 @@ import blosc as bl
 import threading
 
 
+def flush_socket(socket):
+    """Flush all messages currently in the socket."""
+    while True:
+        try:
+            # Check if a message is waiting in the queue
+            message = socket.recv(zmq.NOBLOCK)
+            print(message)
+        except zmq.Again:
+            # No more messages to flush
+            break
+
+
 # ZMQ Sockets
 def create_push_socket(host, port):
     context = zmq.Context()
@@ -37,12 +49,13 @@ def create_request_socket(host, port):
     return socket
 
 
-def create_subscriber_socket(host, port, topic):
+def create_subscriber_socket(host, port, topic, conflate=False):
     context = zmq.Context()
     socket = context.socket(zmq.SUB)
-    # socket.setsockopt(zmq.CONFLATE, 1)
+    socket.setsockopt(zmq.CONFLATE, int(conflate))
     socket.connect("tcp://{}:{}".format(host, port))
     socket.subscribe(topic)
+    flush_socket(socket)
     return socket
 
 

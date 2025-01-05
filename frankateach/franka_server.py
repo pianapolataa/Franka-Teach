@@ -18,7 +18,7 @@ from frankateach.messages import FrankaAction, FrankaState
 from frankateach.constants import (
     CONTROL_PORT,
     HOST,
-    VR_FREQ,
+    CONTROL_FREQ,
 )
 
 CONFIG_ROOT = Path(__file__).parent / "configs"
@@ -26,7 +26,7 @@ CONFIG_ROOT = Path(__file__).parent / "configs"
 
 class FrankaServer:
     def __init__(self, cfg):
-        self._robot = Robot(cfg, VR_FREQ)
+        self._robot = Robot(cfg, CONTROL_FREQ)
         # Action REQ/REP
         self.action_socket = create_response_socket(HOST, CONTROL_PORT)
 

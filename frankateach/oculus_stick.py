@@ -3,7 +3,6 @@ from frankateach.constants import (
     VR_FREQ,
     VR_TCP_HOST,
     VR_TCP_PORT,
-    VR_CONTROLLER_TOPIC,
 )
 from frankateach.utils import FrequencyTimer
 from frankateach.network import create_subscriber_socket, ZMQKeypointPublisher
@@ -19,7 +18,7 @@ class OculusVRStickDetector:
 
         # Create a subscriber socket
         self.stick_socket = create_subscriber_socket(
-            VR_TCP_HOST, VR_TCP_PORT, VR_CONTROLLER_TOPIC
+            VR_TCP_HOST, VR_TCP_PORT, b"", conflate=True
         )  # bytes(VR_CONTROLLER_TOPIC, 'utf-8'))
 
         # Create a publisher for the controller state

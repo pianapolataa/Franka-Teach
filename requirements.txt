@@ -5,3 +5,4 @@ blosc
 hydra-core
 pyrealsense2
 h5py
+pre-commit

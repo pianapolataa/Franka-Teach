@@ -7,6 +7,7 @@ from frankateach.network import (
     ZMQKeypointPublisher,
 )
 from frankateach.constants import (
+    COMMANDED_STATE_PORT,
     CONTROL_PORT,
     HOST,
     STATE_PORT,
@@ -55,7 +56,7 @@ class FrankaOperator:
 
         self.action_socket = create_request_socket(HOST, CONTROL_PORT)
         self.state_socket = ZMQKeypointPublisher(HOST, STATE_PORT)
-        # self.commanded_state_socket = create_request_socket(HOST, COMMANDED_STATE_PORT)
+        self.commanded_state_socket = ZMQKeypointPublisher(HOST, COMMANDED_STATE_PORT)
 
         # Class variables
         # self._save_states = save_states
@@ -165,9 +166,7 @@ class FrankaOperator:
         robot_state.start_teleop = self.start_teleop
         # self.state_socket.send(bytes(pickle.dumps(robot_state, protocol=-1)))
         self.state_socket.pub_keypoints(robot_state, "robot_state")
-
-        # self.commanded_state_socket.send(action)
-        # self.commanded_state_socket.recv()
+        self.commanded_state_socket.pub_keypoints(action, "commanded_robot_state")
 
     def stream(self):
         notify_component_start("Franka teleoperator control")
