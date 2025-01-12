@@ -99,33 +99,36 @@ class Robot(FrankaInterface):
         print("Franka is connected")
 
     def osc_move(self, target_pos, target_quat, gripper_state):
-        target_mat = transform_utils.pose2mat(pose=(target_pos, target_quat))
+        num_steps = 1  # 3
 
-        current_quat, current_pos = self.last_eef_quat_and_pos
-        current_mat = transform_utils.pose2mat(
-            pose=(current_pos.flatten(), current_quat.flatten())
-        )
+        for _ in range(num_steps):
+            target_mat = transform_utils.pose2mat(pose=(target_pos, target_quat))
 
-        pose_error = transform_utils.get_pose_error(
-            target_pose=target_mat, current_pose=current_mat
-        )
+            current_quat, current_pos = self.last_eef_quat_and_pos
+            current_mat = transform_utils.pose2mat(
+                pose=(current_pos.flatten(), current_quat.flatten())
+            )
 
-        if np.dot(target_quat, current_quat) < 0.0:
-            current_quat = -current_quat
+            pose_error = transform_utils.get_pose_error(
+                target_pose=target_mat, current_pose=current_mat
+            )
 
-        quat_diff = transform_utils.quat_distance(target_quat, current_quat)
-        axis_angle_diff = transform_utils.quat2axisangle(quat_diff)
+            if np.dot(target_quat, current_quat) < 0.0:
+                current_quat = -current_quat
 
-        action_pos = pose_error[:3]
-        action_axis_angle = axis_angle_diff.flatten()
+            quat_diff = transform_utils.quat_distance(target_quat, current_quat)
+            axis_angle_diff = transform_utils.quat2axisangle(quat_diff)
 
-        action = action_pos.tolist() + action_axis_angle.tolist() + [gripper_state]
+            action_pos = pose_error[:3]
+            action_axis_angle = axis_angle_diff.flatten()
 
-        self.control(
-            controller_type="OSC_POSE",
-            action=action,
-            controller_cfg=self.velocity_controller_cfg,
-        )
+            action = action_pos.tolist() + action_axis_angle.tolist() + [gripper_state]
+
+            self.control(
+                controller_type="OSC_POSE",
+                action=action,
+                controller_cfg=self.velocity_controller_cfg,
+            )
 
     def reset_joints(
         self,

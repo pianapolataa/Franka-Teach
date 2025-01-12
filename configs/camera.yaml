@@ -22,8 +22,8 @@ cam_info:
 
 cam_config:
   realsense:
-    width: 640
-    height: 480
+    width: 640 #1280
+    height: 480 #720
     fps: 30
     processing_preset: 1
     depth: False

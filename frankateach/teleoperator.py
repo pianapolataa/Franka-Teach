@@ -67,6 +67,9 @@ class FrankaOperator:
         self.start_teleop = False
         self.init_affine = None
         self.teleop_mode = teleop_mode
+
+        if teleop_mode == "human" and home_offset is None:
+            home_offset = [-0.22, 0.0, 0.1]
         self.home_offset = (
             np.array(home_offset) if home_offset is not None else np.zeros(3)
         )
@@ -85,6 +88,19 @@ class FrankaOperator:
             )
             self.action_socket.send(bytes(pickle.dumps(action, protocol=-1)))
             robot_state = pickle.loads(self.action_socket.recv())
+
+            # Move to offset position
+            target_pos = robot_state.pos + self.home_offset
+            target_quat = robot_state.quat
+            action = FrankaAction(
+                pos=target_pos.flatten().astype(np.float32),
+                quat=target_quat.flatten().astype(np.float32),
+                gripper=self.gripper_state,
+                reset=False,
+                timestamp=time.time(),
+            )
+            self.action_socket.send(bytes(pickle.dumps(action, protocol=-1)))
+            robot_state = pickle.loads(self.action_socket.recv())
             # HOME <- Pos: [0.457632  0.0321814 0.2653815], Quat: [0.9998586  0.00880853 0.01421072 0.00179784]
 
             print(robot_state)
@@ -92,6 +108,7 @@ class FrankaOperator:
                 transform_utils.quat2mat(robot_state.quat),
                 robot_state.pos,
             )
+
             self.is_first_frame = False
         if self.controller_state.right_a:
             self.start_teleop = True
@@ -129,7 +146,7 @@ class FrankaOperator:
         if gripper_action is not None and gripper_action != self.gripper_state:
             self.gripper_state = gripper_action
 
-        if self.start_teleop and self.teleop_mode == "robot":
+        if self.start_teleop:
             relative_pos, relative_rot = (
                 relative_affine[:3, 3],
                 relative_affine[:3, :3],
@@ -158,8 +175,12 @@ class FrankaOperator:
             reset=False,
             timestamp=time.time(),
         )
+        if self.teleop_mode == "robot":
+            self.action_socket.send(bytes(pickle.dumps(action, protocol=-1)))
+        else:
+            self.action_socket.send(b"get_state")
 
-        self.action_socket.send(bytes(pickle.dumps(action, protocol=-1)))
+        # self.action_socket.send(bytes(pickle.dumps(action, protocol=-1)))
         robot_state = self.action_socket.recv()
 
         robot_state = pickle.loads(robot_state)
