@@ -37,7 +37,7 @@ class DataCollector:
         collect_reskin=False,
     ):
         self.image_subscribers = {}
-        self.depth_subscribers = []
+        self.depth_subscribers = {}
         if collect_img:
             for camera in cams:
                 self.image_subscribers[camera.cam_id] = ZMQCameraSubscriber(
@@ -149,8 +149,46 @@ class DataCollector:
             self.image_subscribers[cam_idx].stop()
             print(f"Saved video to {filename}")
 
+    # def save_depth(self, cam_idx, cam_config):
+    #     raise NotImplementedError("Depth recording is not yet implemented")
+
     def save_depth(self, cam_idx, cam_config):
-        raise NotImplementedError("Depth recording is not yet implemented")
+        notify_component_start(component_name="Depth Image Collector")
+
+        filename = self.storage_path / f"cam_{cam_idx}_depth.pkl"
+        metadata_filename = self.storage_path / f"cam_{cam_idx}_depth.metadata"
+
+        depth_frames = []
+
+        timestamps = []
+        metadata = dict(
+            cam_idx=cam_idx,
+            width=cam_config.width,
+            height=cam_config.height,
+            fps=cam_config.fps,
+            filename=filename,
+            record_start_time=time.time(),
+        )
+
+        try:
+            # Loop to capture frames until stopped
+            while self.run_event.is_set():
+                depth_frame, timestamp = self.depth_subscribers[
+                    cam_idx
+                ].recv_depth_image()
+                depth_frames.append(depth_frame)
+                timestamps.append(timestamp)
+        finally:
+            # Ensure resources are released regardless of exit conditions
+            metadata["record_end_time"] = time.time()
+            metadata["num_image_frames"] = len(timestamps)
+            metadata["timestamps"] = timestamps
+            with open(metadata_filename, "wb") as f:
+                pickle.dump(metadata, f)
+            with open(filename, "wb") as f:
+                pickle.dump(depth_frames, f)
+            self.depth_subscribers[cam_idx].stop()
+            print(f"Saved depth to {filename}")
 
     def save_states(self):
         notify_component_start(component_name="State Collector")
