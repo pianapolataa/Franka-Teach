@@ -15,10 +15,10 @@ cam_info:
   #   cam_id: 4
   #   cam_serial_num: "152222073516"
   #   type: realsense
-  -
-    cam_id: 51
-    cam_serial_num: 24
-    type: fisheye
+  # -
+  #   cam_id: 51
+  #   cam_serial_num: 2 #24
+  #   type: fisheye
 
 cam_config:
   realsense:

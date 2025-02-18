@@ -2,7 +2,7 @@ defaults:
   - _self_
   - camera
 
-storage_path: "/home/siddhant/github/Franka-Teach/data/extracted_data/0116_human_bread_on_plate"
+storage_path: "/home/siddhant/github/Franka-Teach/data/extracted_data/0218_put_bowl_with_bread_in_oven_and_close"
 demo_num: 0
 collect_img: True
 collect_depth: False
