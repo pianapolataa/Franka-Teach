@@ -5,10 +5,8 @@ Bi-Manual Franka 3 robot setup.
 
 ## NUC Setup
 
-todo
-
 1. Install Ubuntu 22.04 and a real-time kernel
-2. Make sure the NUC is booted with the real-time kernel
+2. Make sure the NUC is booted with the real-time kernel [[link](https://frankaemika.github.io/docs/installation_linux.html#setting-up-the-real-time-kernel)].
 
 
 ## Lambda Machine Setup
@@ -122,17 +120,16 @@ python3 test_franka_env.py
 1. Do the steps until 6 in the "How to run the Franka-Teach environment" section.
 
 
-2. Also, start the teleoperation script. If you want to collect robot states, set `save_states=True`:
+2. Also, start the teleoperation script. Set the teleop mode based on if you are collecting human or robot demonstrations.:
 
 ```bash
-python3 teleop.py save_states=[True/False]
+python3 teleop.py teleop_mode=<human/robot>
 ```
 
-3. If `save_states=True`, the teleoperation will not start until you start the data collection.
-You can start the data collection by running the `collect_data.py` script:
+3. You can start the data collection by running the `collect_data.py` script. Set the `demo_num` to the number of demonstrations you want to collect and `collect_depth` to `True` if you want to collect depth data from the Intel realsense cameras.
 
 ```bash
-python3 collect_data.py demo_num=0
+python3 collect_data.py demo_num=0 collect_depth=<True/False>
 ```
 
-4. Use the VR controllers to control the robot.
+4. For robot teleoperation, use the VR controllers to control the robot. When collecting human data, use the VR controller to start and stop the data collection while performing the actions with the human hand.
