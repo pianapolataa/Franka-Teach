@@ -15,11 +15,7 @@ from deoxys.utils.config_utils import (
 from frankateach.utils import notify_component_start
 from frankateach.network import create_response_socket
 from frankateach.messages import FrankaAction, FrankaState
-from frankateach.constants import (
-    CONTROL_PORT,
-    HOST,
-    CONTROL_FREQ,
-)
+from frankateach.constants import *
 
 CONFIG_ROOT = Path(__file__).parent / "configs"
 
@@ -55,6 +51,7 @@ class FrankaServer:
         try:
             while True:
                 command = self.action_socket.recv()
+                print("Received command:", command)
                 if command == b"get_state":
                     self.action_socket.send(self.get_state())
                 else:
@@ -63,12 +60,15 @@ class FrankaServer:
                         self._robot.reset_joints(gripper_open=franka_control.gripper)
                         time.sleep(1)
                     else:
+                        print(franka_control)
+                        print("enter robot osc")
                         self._robot.osc_move(
                             franka_control.pos,
                             franka_control.quat,
                             franka_control.gripper,
                         )
                     self.action_socket.send(self.get_state())
+                    print(self.get_state())
         except KeyboardInterrupt:
             pass
         finally:
@@ -99,7 +99,7 @@ class Robot(FrankaInterface):
         print("Franka is connected")
 
     def osc_move(self, target_pos, target_quat, gripper_state):
-        num_steps = 3
+        num_steps = 1
 
         for _ in range(num_steps):
             target_mat = transform_utils.pose2mat(pose=(target_pos, target_quat))

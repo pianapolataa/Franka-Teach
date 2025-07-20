@@ -280,3 +280,4 @@ class ZMQButtonFeedbackSubscriber(threading.Thread):
         print("Closing the subscriber socket in {}:{}.".format(self._host, self._port))
         self.socket.close()
         self.context.term()
+        
