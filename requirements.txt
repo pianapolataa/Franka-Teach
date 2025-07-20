@@ -6,3 +6,7 @@ hydra-core
 pyrealsense2
 h5py
 pre-commit
+matplotlib 
+ffmpeg-python
+open3d 
+imageio
