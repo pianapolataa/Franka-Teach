@@ -14,8 +14,7 @@ from deoxys.utils import transform_utils
 from numpy.linalg import pinv
 from frankateach.franka_server import Robot
 import os
-
-import ipdb
+from scipy.spatial.transform import Rotation as R
 
 np.set_printoptions(precision=2, suppress=True)
 # Filter to smooth out the arm cartesian state
@@ -140,8 +139,26 @@ class FrankaArmOperator:
         cart = np.concatenate(
             [t, R], axis=0
         )
-
+        
         return cart
+    
+    def _cart2homo(self, cart_pose):
+        """
+        Converts a 7D cartesian pose [x, y, z, qw, qx, qy, qz]
+        into a 4x4 homogeneous transformation matrix.
+        """
+        pos = cart_pose[:3]
+        quat = cart_pose[3:]  # [qw, qx, qy, qz]
+
+        # Convert quaternion to rotation matrix
+        rot = R.from_quat([quat[1], quat[2], quat[3], quat[0]]).as_matrix()  # scipy uses [x, y, z, w]
+
+        homo_mat = np.eye(4)
+        homo_mat[:3, :3] = rot
+        homo_mat[:3, 3] = pos
+
+        return homo_mat
+    
     # Gets the Scaled Resolution pose
     def _get_scaled_cart_pose(self, moving_robot_homo_mat):
         # Get the cart pose without the scaling
@@ -151,9 +168,20 @@ class FrankaArmOperator:
         # REVISION !! CHANGE TO FRANKATEACH
         # current_homo_mat = copy(self.robot.get_pose()['position'])
         self.action_socket.send(b"get_state")
-        robot_state: FrankaState = pickle.loads(self.action_socket.recv())
-        current_cart_pose = self._homo2cart(current_homo_mat)
+        robot_state = pickle.loads(self.action_socket.recv())
+        # HOME <- Pos: [0.457632  0.0321814 0.2653815], Quat: [0.9998586  0.00880853 0.01421072 0.00179784]
 
+        self.home_rot, self.home_pos = (
+            transform_utils.quat2mat(robot_state.quat),
+            robot_state.pos,
+        )
+
+        # robot init affine
+        current_homo_mat = np.eye(4)
+        current_homo_mat[:3, :3] = self.home_rot
+        current_homo_mat[:3, 3] = self.home_pos
+
+        current_cart_pose = self._homo2cart(current_homo_mat)
         # Get the difference in translation between these two cart poses
         diff_in_translation = unscaled_cart_pose[:3] - current_cart_pose[:3]
         scaled_diff_in_translation = diff_in_translation * self.resolution_scale
@@ -162,8 +190,8 @@ class FrankaArmOperator:
         scaled_cart_pose = np.zeros(7)
         scaled_cart_pose[3:] = unscaled_cart_pose[3:] # Get the rotation directly
         scaled_cart_pose[:3] = current_cart_pose[:3] + scaled_diff_in_translation # Get the scaled translation only
-        
-        return scaled_cart_pose
+        scaled_homo_mat = self._cart2homo(scaled_cart_pose)
+        return scaled_homo_mat
     
     def _to_robot_frame(self, init_affine, current_affine):
             # # Rotation from allegro to franka     This is for hand tracking not wrist tracking
@@ -279,7 +307,11 @@ class FrankaArmOperator:
     
             self.robot_moving_H = self._to_robot_frame(H_HI_HH, H_HT_HH)
             # Use the resolution scale to get the final cart pose
-            # final_pose = self._get_scaled_cart_pose(self.robot_moving_H)
+            print("----------------")
+            print(self.robot_moving_H)
+            self.robot_moving_H = self._get_scaled_cart_pose(self.robot_moving_H)
+            print(self.robot_moving_H)
+            print("----------------")
             relative_affine = self.robot_moving_H
 
             # ----------- Log pose for visualization -----------

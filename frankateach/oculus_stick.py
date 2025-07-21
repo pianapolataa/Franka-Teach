@@ -14,7 +14,7 @@ from frankateach.utils import notify_component_start
 # This class is used to detect the hand keypoints from the VR and publish them.
 class OculusVRStickDetector:
     def __init__(self, host, controller_state_pub_port):
-        notify_component_start("vr detector")
+        notify_component_start("vr detector for stick tracking")
 
         # Create a subscriber socket
         self.stick_socket = create_subscriber_socket(
@@ -59,7 +59,7 @@ class OculusVRStickDetector:
 
 
 def main():
-    detector = OculusVRStickDetector("localhost", VR_CONTROLLER_STATE_PORT)
+    detector = OculusVRStickDetector("HOST", VR_CONTROLLER_STATE_PORT)
     detector.stream()
 
 

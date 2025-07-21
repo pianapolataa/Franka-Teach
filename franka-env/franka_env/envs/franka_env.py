@@ -143,17 +143,16 @@ class FrankaEnv(gym.Env):
             timestamp=time.time(),
         )
         # print("sending action to robot: ", franka_action)
-
         self.action_request_socket.send(bytes(pickle.dumps(franka_action, protocol=-1)))
         franka_state: FrankaState = pickle.loads(self.action_request_socket.recv())
         self.franka_state = franka_state
 
         image_dict = {}
-        self.curr_images = []
-        for cam_id, subscriber in self.image_subscribers.items():
-            image, _ = subscriber.recv_rgb_image()
-            image_dict[f"pixels{cam_id}"] = cv2.resize(image, (self.width, self.height))
-            self.curr_images.append(image)
+        # self.curr_images = []
+        # for cam_id, subscriber in self.image_subscribers.items():
+        #     image, _ = subscriber.recv_rgb_image()
+        #     image_dict[f"pixels{cam_id}"] = cv2.resize(image, (self.width, self.height))
+        #     self.curr_images.append(image)
 
         obs = {
             "features": np.concatenate(
@@ -173,7 +172,7 @@ class FrankaEnv(gym.Env):
         obs.update(image_dict)
         # for i, image in image_dict.items():
         #     obs[f"pixels{i}"] = cv2.resize(image, (self.width, self.height))
-        return obs, self.reward, False, False, {}
+        return obs, self.reward, False, False
 
     def reset(self):
         print("resetting")
@@ -194,11 +193,11 @@ class FrankaEnv(gym.Env):
         print("reset done: ", franka_state)
 
         image_dict = {}
-        self.curr_images = []
-        for cam_id, subscriber in self.image_subscribers.items():
-            image, _ = subscriber.recv_rgb_image()
-            image_dict[f"pixels{cam_id}"] = cv2.resize(image, (self.width, self.height))
-            self.curr_images.append(image)
+        # self.curr_images = []
+        # for cam_id, subscriber in self.image_subscribers.items():
+        #     image, _ = subscriber.recv_rgb_image()
+        #     image_dict[f"pixels{cam_id}"] = cv2.resize(image, (self.width, self.height))
+        #     self.curr_images.append(image)
 
         obs = {
             "features": np.concatenate(
@@ -214,7 +213,6 @@ class FrankaEnv(gym.Env):
                 obs.update(reskin_state)
             except KeyError:
                 pass
-
         obs.update(image_dict)
         # for i, image in enumerate(image_list):
         #     obs[f"pixels{i}"] = cv2.resize(image, (self.width, self.height))
@@ -270,13 +268,13 @@ if __name__ == "__main__":
     images = []
     obs = env.reset()
 
-    apply_deltas = False
+    apply_deltas = True
     if apply_deltas:
-        delta_pos = 0.03
+        delta_pos = 0.01
         delta_angle = 0.05
         for i in range(100):
             obs, reward, done, _ = env.step([delta_pos, 0, 0, 0, 0, 0, GRIPPER_OPEN])
-            images.append(obs["pixels_0"])
+            # images.append(obs["pixels_0"])
 
         for i in range(100):
             obs, reward, done, _ = env.step([0, delta_pos, 0, 0, 0, 0, GRIPPER_OPEN])
