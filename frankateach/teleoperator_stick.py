@@ -38,14 +38,14 @@ class FrankaOperator:
         home_offset=[0, 0, 0],
     ) -> None:
         # Subscribe controller state
-        print("subscriper", HOST, VR_CONTROLLER_STATE_PORT)
+        print("subscriper", LOCALHOST, VR_CONTROLLER_STATE_PORT)
         self._controller_state_subscriber = ZMQKeypointSubscriber(
-            host=HOST, port=VR_CONTROLLER_STATE_PORT, topic="controller_state"
+            host=LOCALHOST, port=VR_CONTROLLER_STATE_PORT, topic="controller_state"
         )
 
-        self.action_socket = create_request_socket(HOST, CONTROL_PORT)
-        self.state_socket = ZMQKeypointPublisher(HOST, STATE_PORT)
-        self.commanded_state_socket = ZMQKeypointPublisher(HOST, COMMANDED_STATE_PORT)
+        self.action_socket = create_request_socket(LOCALHOST, CONTROL_PORT)
+        self.state_socket = ZMQKeypointPublisher(LOCALHOST, STATE_PORT)
+        self.commanded_state_socket = ZMQKeypointPublisher(LOCALHOST, COMMANDED_STATE_PORT)
 
         # Class variables
         # self._save_states = save_states

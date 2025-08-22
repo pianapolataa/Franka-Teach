@@ -15,6 +15,7 @@ init_gripper_state: open # open, close
 teleop_mode: robot # robot, human
 home_offset: null
 use_oculus_stick: false
+use_hand_tracking: true
 
 oculus_stick_detector:
   _target_: frankateach.oculus_stick.OculusVRStickDetector
@@ -43,8 +44,8 @@ stick_operators:
     home_offset: ${home_offset} # null, [x, y, z] in meters
   
 
-hand_operators:
-    _target_: frankateach.teleoperator_hand.FrankaArmOperator
+arm_operators:
+    _target_: frankateach.teleoperator_arm.FrankaArmOperator
     transformed_keypoints_port: ${transformed_position_keypoint_port} # transformed keypoint port
     use_filter: False
     arm_resolution_port: ${resolution_button_publish_port} 
@@ -52,3 +53,14 @@ hand_operators:
     init_gripper_state: ${init_gripper_state} # open, close
     home_offset: ${home_offset} # null, [x, y, z] in meters
   
+ruka_operators:
+    _target_: frankateach.teleoperator_ruka.RukaOperator
+    transformed_keypoints_port: ${transformed_position_keypoint_port} # transformed keypoint port
+    teleoperation_reset_port: ${teleop_reset_publish_port}
+    hand_type: "right"
+
+manus_streamer:
+    _target_: ruka_hand.manus_streamer.manus_streamer
+    hand_type: "right"
+    frequency: 100
+    host: 

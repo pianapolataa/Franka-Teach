@@ -12,25 +12,25 @@ class OculusVRHandDetector():
         notify_component_start("vr detector for hand tracking")
 
         # Initializing the network socket for getting the raw right hand keypoints
-        print(PC_IP, oculus_port) 
-        self.raw_keypoint_socket = create_pull_socket(PC_IP, oculus_port)
-        self.button_keypoint_socket = create_pull_socket(PC_IP, button_port)
-        self.teleop_reset_socket = create_pull_socket(PC_IP, teleop_reset_port)
+        print(INTERNAL_IP, oculus_port) 
+        self.raw_keypoint_socket = create_pull_socket(INTERNAL_IP, oculus_port)
+        self.button_keypoint_socket = create_pull_socket(INTERNAL_IP, button_port)
+        self.teleop_reset_socket = create_pull_socket(INTERNAL_IP, teleop_reset_port)
         
          # ZMQ Keypoint publisher
         self.hand_keypoint_publisher = ZMQKeypointPublisher(
-            host = HOST,
+            host = LOCALHOST,
             port = keypoint_pub_port
         )
 
         # Socket For Resolution Button
         self.button_socket_publisher = ZMQKeypointPublisher(
-            host =HOST,
+            host =LOCALHOST,
             port =button_publish_port
         ) 
         # Socket For Teleop Reset
         self.pause_info_publisher = ZMQKeypointPublisher(
-            host =HOST,
+            host =LOCALHOST,
             port =teleop_reset_publish_port
         ) 
         self.timer = FrequencyTimer(VR_FREQ) 
@@ -87,10 +87,10 @@ class OculusVRHandDetector():
                 pause_status = self.teleop_reset_socket.recv()
 
                 # Analyzing the resolution based on Button Feedback 
-                if button_feedback==b'high':
-                    button_feedback_num = ARM_HIGH_RESOLUTION
-                else:
+                if button_feedback==b'low':
                     button_feedback_num = ARM_LOW_RESOLUTION
+                else:
+                    button_feedback_num = ARM_HIGH_RESOLUTION
                 # Analyzing the Teleop Reset Status
                 if pause_status==b'Low':
                     pause_status = ARM_TELEOP_STOP 

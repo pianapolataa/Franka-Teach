@@ -4,15 +4,17 @@ from frankateach.constants import *
 from frankateach.vectorops import *
 from frankateach.network import ZMQKeypointPublisher, ZMQKeypointSubscriber,ZMQButtonFeedbackSubscriber
 from frankateach.utils import notify_component_start, FrequencyTimer
+from ruka_hand.utils.constants import HAND_JOINTS
+import h5py
 
 class TransformHandPositionCoords():
     def __init__(self, keypoint_port, transformation_port,moving_average_limit = 5):
         notify_component_start('keypoint position transform')
         
         # Initializing the subscriber for right hand keypoints
-        self.original_keypoint_subscriber = ZMQKeypointSubscriber(HOST, keypoint_port, 'right')
+        self.original_keypoint_subscriber = ZMQKeypointSubscriber(LOCALHOST, keypoint_port, 'right')
         # Initializing the publisher for transformed right hand keypoints
-        self.transformed_keypoint_publisher = ZMQKeypointPublisher(HOST, transformation_port)
+        self.transformed_keypoint_publisher = ZMQKeypointPublisher(LOCALHOST, transformation_port)
         # Timer
         self.timer = FrequencyTimer(VR_FREQ)
         # Keypoint indices for knuckles
@@ -42,6 +44,21 @@ class TransformHandPositionCoords():
         cross_product = normalize_vector(np.cross(palm_direction, palm_normal))              # Current X
         return [cross_product, palm_direction, palm_normal]
 
+    def _get_ordered_joints(self, projected_translated_coords):
+        # Extract joint data based on HAND_JOINTS
+        extracted_joints = {
+            joint: projected_translated_coords[indices]
+            for joint, indices in HAND_JOINTS.items()
+        }
+        # Concatenate the extracted joint data in the same order as the dictionary keys
+        ordered_joints = np.concatenate(
+            [extracted_joints[joint] * 100.0 for joint in HAND_JOINTS],
+            axis=0,
+        )
+        reshaped_joints = ordered_joints.reshape(5, 5, 3)
+
+        return reshaped_joints
+    
     # Create a coordinate frame for the arm 
     def _get_hand_dir_frame(self, origin_coord, index_knuckle_coord, pinky_knuckle_coord):
 
@@ -62,20 +79,22 @@ class TransformHandPositionCoords():
         rotation_matrix = np.linalg.solve(original_coord_frame, np.eye(3)).T
         transformed_hand_coords = (rotation_matrix @ translated_coords.T).T
         
+        # For teleoperating ruka hand
+        ordered_joints = self._get_ordered_joints(transformed_hand_coords)
+        
         hand_dir_frame = self._get_hand_dir_frame(
             hand_coords[0],
             translated_coords[self.knuckle_points[0]], 
             translated_coords[self.knuckle_points[1]]
         )
 
-        return transformed_hand_coords, hand_dir_frame
+        return ordered_joints, hand_dir_frame
 
     def stream(self):
         while True:
             try:
                 self.timer.start_loop()
                 data_type, hand_coords = self._get_hand_coords()
-
                 self.logging_enabled = True
                 # Shift the points to required axes
                 transformed_hand_coords, translated_hand_coord_frame = self.transform_keypoints(hand_coords)

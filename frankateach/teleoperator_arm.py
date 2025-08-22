@@ -42,15 +42,10 @@ class FrankaArmOperator:
         home_offset=[0, 0, 0],
     ):
         notify_component_start('franka arm operator')
-        # Subscribers for the transformed hand keypoints
-        self._transformed_hand_keypoint_subscriber = ZMQKeypointSubscriber(
-            host=HOST,
-            port=transformed_keypoints_port,
-            topic='transformed_hand_coords'
-        )
+
         # Subscribers for the transformed arm frame
         self._transformed_arm_keypoint_subscriber = ZMQKeypointSubscriber(
-            host=HOST,
+            host=LOCALHOST,
             port=transformed_keypoints_port,
             topic='transformed_hand_frame'
         )
@@ -60,21 +55,21 @@ class FrankaArmOperator:
 
         # Subscribers for the resolution scale and teleop state
         self._arm_resolution_subscriber = ZMQKeypointSubscriber(
-            host = HOST,
+            host = LOCALHOST,
             port = arm_resolution_port,
             topic = 'button'
         )
 
         # Continuous or stop teleoperation
         self._arm_teleop_state_subscriber = ZMQKeypointSubscriber(
-            host = HOST, 
+            host = LOCALHOST, 
             port = teleoperation_reset_port,
             topic = 'pause'
         )
         
-        self.action_socket = create_request_socket(HOST, CONTROL_PORT)
-        self.state_socket = ZMQKeypointPublisher(HOST, STATE_PORT)
-        self.commanded_state_socket = ZMQKeypointPublisher(HOST, COMMANDED_STATE_PORT)
+        self.action_socket = create_request_socket(LOCALHOST, CONTROL_PORT)
+        self.state_socket = ZMQKeypointPublisher(LOCALHOST, STATE_PORT)
+        self.commanded_state_socket = ZMQKeypointPublisher(LOCALHOST, COMMANDED_STATE_PORT)
 
   # Class variables
         # self._save_states = save_states
@@ -210,19 +205,18 @@ class FrankaArmOperator:
             # self.robot_moving_H = copy(H_RT_RH)
 
         H_V_des = pinv(init_affine) @ current_affine
-        relative_affine_rot = (pinv(H_R_V) @ H_V_des @ H_R_V)[:3, :3]
-        relative_affine_trans = (pinv(H_R_V_star) @ H_V_des @ H_R_V_star)[:3, 3]
+        relative_affine_rot = (pinv(H_R_U) @ H_V_des @ H_R_U)[:3, :3]
+        relative_affine_trans = (pinv(H_R_U_star) @ H_V_des @ H_R_U_star)[:3, 3]
         relative_affine = np.block(
             [[relative_affine_rot, relative_affine_trans.reshape(3, 1)], [0, 0, 0, 1]]
         )
-        print(11)
         return relative_affine
 
 
     def _apply_retargeted_angles(self) -> None:
         arm_teleop_state = self._get_arm_teleop_state()
         arm_teleoperation_scale_mode = self._get_resolution_scale_mode()
-
+        print("entering apply retargeted", arm_teleop_state , self.start_teleop, arm_teleop_state)
         if arm_teleop_state ==  ARM_TELEOP_CONT:
             self.start_teleop = True
             
@@ -304,28 +298,11 @@ class FrankaArmOperator:
             H_HI_HH = copy(self.hand_init_H) # Homo matrix that takes P_HI  to P_HH - Point in Inital Hand Frame to Point in current hand Frame
             H_HT_HH = copy(self.hand_moving_H) # changing Homo matrix that takes P_HT to P_HH
             H_RI_RH = copy(self.robot_init_H) # not change robot home pos; Homo matrix that takes P_RI to P_RH
-    
+
+            
             self.robot_moving_H = self._to_robot_frame(H_HI_HH, H_HT_HH)
-            # Use the resolution scale to get the final cart pose
-            print("----------------")
-            print(self.robot_moving_H)
-            self.robot_moving_H = self._get_scaled_cart_pose(self.robot_moving_H)
-            print(self.robot_moving_H)
-            print("----------------")
             relative_affine = self.robot_moving_H
 
-            # ----------- Log pose for visualization -----------
-            log_dir = "./frankateach/data"
-            os.makedirs(log_dir, exist_ok=True)
-            log_path = os.path.join(log_dir, "robot_relative_pose_log.txt")
-
-            with open(log_path, 'a') as f:
-                relative_pos = relative_affine[:3, 3]
-                relative_rot = relative_affine[:3, :3]
-                log_line = np.array2string(relative_pos, precision=4, separator=',') + " | " + \
-                        np.array2string(relative_rot, precision=4, separator=',') + "\n"
-                f.write(log_line)
-            # --------------------------------------------------
             # Use a Filter
             if self.use_filter:
                 relative_affine = self.comp_filter(relative_affine)
@@ -338,14 +315,6 @@ class FrankaArmOperator:
             target_rot = self.home_rot @ relative_rot
             target_quat = transform_utils.mat2quat(target_rot)
 
-            # ----------- Log pose for visualization -----------
-            log_path = os.path.join(log_dir, "robot_target_pose_log.txt")
-
-            with open(log_path, 'a') as f:
-                log_line = np.array2string(target_pos, precision=4, separator=',') + " | " + \
-                        np.array2string(target_quat, precision=4, separator=',') + "\n"
-                f.write(log_line)
-            # --------------------------------------------------
 
             target_pos = np.clip(
                 target_pos,
@@ -383,7 +352,7 @@ class FrankaArmOperator:
 
     def stream(self):
         notify_component_start("Franka teleoperator control")
-        print("Start controlling the robot hand using the Oculus Headset.\n")
+        print("Start controlling the robot arm using the Oculus Headset.\n")
         try:
             while True:
                 # Retargeting function

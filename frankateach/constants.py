@@ -1,8 +1,9 @@
 import numpy as np
 
 # Network constants
-HOST = 'localhost' # '127.0.0.1' # '0.0.0.0' # "localhost"
-PC_IP = "172.24.71.240"
+LOCALHOST = 'localhost' # '127.0.0.1' # '0.0.0.0' # "localhost"
+INTERNAL_IP =  "172.24.71.240" # "100.82.146.36" # "172.24.71.240"
+PUBLIC_IP = "100.82.146.36"
 CAM_PORT = 10005
 VR_CONTROLLER_STATE_PORT = 8889
 STATE_PORT = 8900
@@ -49,8 +50,18 @@ OCULUS_VIEW_LIMITS = {
 # Robot constants
 GRIPPER_OPEN = -1
 GRIPPER_CLOSE = 1
-H_R_V = np.array([[1, 0, 0, 0], [0, 0, 1, 0], [0, -1, 0, 0], [0, 0, 0, 1]])
-H_R_V_star = np.array([[-1, 0, 0, 0], [0, 0, 1, 0], [0, -1, 0, 0], [0, 0, 0, 1]])
+# translation matrix
+H_R_U_star = np.array([[-1, 0, 0, 0], 
+                       [0, 0, 1, 0], 
+                       [0, 1, 0, 0], 
+                       [0, 0, 0, 1]]) # for mirror flipping
+H_R_U = np.array([ # from robot frame to unity frame （unity z dir = robot base y dir, unity y dir = robot base z dir)
+    [1, 0, 0, 0],
+    [0, 0, 1, 0],
+    [0, 1, 0, 0],
+    [0, 0, 0, 1]
+]) # switching y and z axis
+
 x_min, x_max = 0.2, 0.75
 y_min, y_max = -0.4, 0.4
 z_min, z_max = 0.05, 0.7  # 232, 550

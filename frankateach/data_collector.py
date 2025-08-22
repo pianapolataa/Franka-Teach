@@ -16,7 +16,7 @@ from frankateach.utils import notify_component_start
 
 from frankateach.constants import (
     COMMANDED_STATE_PORT,
-    HOST,
+    LOCALHOST,
     CAM_PORT,
     STATE_PORT,
     DEPTH_PORT_OFFSET,
@@ -41,23 +41,23 @@ class DataCollector:
         if collect_img:
             for camera in cams:
                 self.image_subscribers[camera.cam_id] = ZMQCameraSubscriber(
-                    HOST, CAM_PORT + camera.cam_id, "RGB"
+                    LOCALHOST, CAM_PORT + camera.cam_id, "RGB"
                 )
 
         if collect_depth:
             for camera in cams:
                 if camera.type == "realsense":
                     self.depth_subscribers[camera.cam_id] = ZMQCameraSubscriber(
-                        HOST, CAM_PORT + DEPTH_PORT_OFFSET + camera.cam_id, "Depth"
+                        LOCALHOST, CAM_PORT + DEPTH_PORT_OFFSET + camera.cam_id, "Depth"
                     )
 
         if collect_state:
             self.state_socket = ZMQKeypointSubscriber(
-                host=HOST, port=STATE_PORT, topic="robot_state"
+                host=LOCALHOST, port=STATE_PORT, topic="robot_state"
             )
             # self.state_socket = create_response_socket(HOST, STATE_PORT)
             self.commanded_state_socket = ZMQKeypointSubscriber(
-                host=HOST, port=COMMANDED_STATE_PORT, topic="commanded_robot_state"
+                host=LOCALHOST, port=COMMANDED_STATE_PORT, topic="commanded_robot_state"
             )
 
         if collect_reskin:

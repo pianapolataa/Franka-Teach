@@ -24,7 +24,7 @@ class FrankaServer:
     def __init__(self, cfg):
         self._robot = Robot(cfg, CONTROL_FREQ)
         # Action REQ/REP
-        self.action_socket = create_response_socket(HOST, CONTROL_PORT)
+        self.action_socket = create_response_socket(LOCALHOST, CONTROL_PORT)
 
     def init_server(self):
         # connect to robot
