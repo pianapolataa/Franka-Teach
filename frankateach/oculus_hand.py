@@ -86,25 +86,21 @@ class OculusVRHandDetector():
                 button_feedback = self.button_keypoint_socket.recv()
                 pause_status = self.teleop_reset_socket.recv()
 
-                # Analyzing the resolution based on Button Feedback 
+
                 if button_feedback==b'low':
                     button_feedback_num = ARM_LOW_RESOLUTION
                 else:
                     button_feedback_num = ARM_HIGH_RESOLUTION
-                # Analyzing the Teleop Reset Status
+
                 if pause_status==b'Low':
                     pause_status = ARM_TELEOP_STOP 
                 else:
                     pause_status = ARM_TELEOP_CONT
-                # if i % 50 == 0:
-                #     print(f"Received Keypoints: {raw_keypoints}, \n Button Feedback: {button_feedback} \n Pause Status: {pause_status}")
-                # Processing the keypoints and publishing them
+ 
                 keypoint_dict = self._extract_data_from_token(raw_keypoints)
-                # Publish Data
+
                 self._publish_data(keypoint_dict)
-                # Publish Button Data
                 self._publish_button_data(button_feedback_num)
-                # Publish Pause Data
                 self._publish_pause_data(pause_status)
                 self.timer.end_loop()
                 i +=1
