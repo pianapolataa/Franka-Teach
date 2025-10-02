@@ -16,9 +16,8 @@ from frankateach.franka_server import Robot
 import os
 from scipy.spatial.transform import Rotation as R
 
-from ruka_hand.control.operator import RUKAOperator
+from ruka_hand.control.rukav2teleop import *
 from ruka_hand.utils.timer import FrequencyTimer
-from ruka_hand.utils.vectorops import *
 from ruka_hand.utils.zmq import ZMQPublisher, create_pull_socket
 from ruka_hand.utils.trajectory import move_to_pos
 from ruka_hand.control.hand import Hand
@@ -59,56 +58,13 @@ class RukaOperator:
         # )
         
         self.hand_type = hand_type
-            
-    def _turn_frame_to_homo_mat(self, frame):
-        t = frame[0]
-        R = frame[1:]
-
-        homo_mat = np.zeros((4, 4))
-        homo_mat[:3, :3] = np.transpose(R)
-        homo_mat[:3, 3] = t
-        homo_mat[3, 3] = 1
-
-        return homo_mat
-    
+        
     def _get_hand_coords(self):
         for i in range(10):
             data = self._transformed_hand_keypoint_subscriber.recv_keypoints(flags=zmq.NOBLOCK)
             if not data is None: break 
         if data is None: return None
         return np.asanyarray(data)
-    
-    
-    # Converts Homogenous Transformation Matrix to Cartesian Coords
-    def _homo2cart(self, homo_mat):
-        
-        t = homo_mat[:3, 3]
-        R = Rotation.from_matrix(
-            homo_mat[:3, :3]).as_quat()
-
-        cart = np.concatenate(
-            [t, R], axis=0
-        )
-        
-        return cart
-    
-    def _cart2homo(self, cart_pose):
-        """
-        Converts a 7D cartesian pose [x, y, z, qw, qx, qy, qz]
-        into a 4x4 homogeneous transformation matrix.
-        """
-        pos = cart_pose[:3]
-        quat = cart_pose[3:]  # [qw, qx, qy, qz]
-
-        # Convert quaternion to rotation matrix
-        rot = R.from_quat([quat[1], quat[2], quat[3], quat[0]]).as_matrix()  # scipy uses [x, y, z, w]
-
-        homo_mat = np.eye(4)
-        homo_mat[:3, :3] = rot
-        homo_mat[:3, 3] = pos
-
-        return homo_mat
-    
     
     def _get_arm_teleop_state(self):
         reset_stat = self._arm_teleop_state_subscriber.recv_keypoints()
@@ -120,27 +76,7 @@ class RukaOperator:
         return reset_stat
 
     def _init_hand(self):
-        self.hand_dict = {}
-        self.hand_dict[self.hand_type] = RUKAOperator(
-            hand_type=self.hand_type,
-            moving_average_limit=5,
-        )
-        
-    def _get_ordered_joints(self, projected_translated_coords):
-        # Extract joint data based on HAND_JOINTS
-        extracted_joints = {
-            joint: projected_translated_coords[indices]
-            for joint, indices in HAND_JOINTS.items()
-        }
-        # Concatenate the extracted joint data in the same order as the dictionary keys
-        ordered_joints = np.concatenate(
-            [extracted_joints[joint] * 100.0 for joint in HAND_JOINTS],
-            axis=0,
-        )
-        reshaped_joints = ordered_joints.reshape(5, 5, 3)
-
-        return reshaped_joints
-
+        self.handler = RUKAv2Handler()
     
     def _apply_retargeted_angles(self) -> None:
         arm_teleop_state = self._get_arm_teleop_state()
@@ -170,7 +106,7 @@ class RukaOperator:
            
 
         if self.start_teleop:
-            self.hand_dict[self.hand_type].step(transformed_hand_coords)
+            self.handler.step(transformed_hand_coords)
   
 
     def stream(self):
