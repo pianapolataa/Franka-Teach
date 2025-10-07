@@ -16,7 +16,7 @@ from frankateach.franka_server import Robot
 import os
 from scipy.spatial.transform import Rotation as R
 
-from ruka_hand.control.rukav2teleop import *
+from ruka_hand.control.rukav2_teleop import *
 from ruka_hand.utils.timer import FrequencyTimer
 from ruka_hand.utils.zmq import ZMQPublisher, create_pull_socket
 from ruka_hand.utils.trajectory import move_to_pos
