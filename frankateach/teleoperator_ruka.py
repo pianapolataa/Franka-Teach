@@ -128,7 +128,7 @@ class RukaOperator:
 
 
 def main():
-    operator = RukaOperator(8093)
+    operator = RukaOperator(save_states=True)
     operator.stream()
 
 
