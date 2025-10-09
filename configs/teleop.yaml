@@ -15,7 +15,7 @@ init_gripper_state: open # open, close
 teleop_mode: robot # robot, human
 home_offset: null
 use_oculus_stick: false
-use_hand_tracking: true
+use_hand_tracking: false
 
 oculus_stick_detector:
   _target_: frankateach.oculus_stick.OculusVRStickDetector
