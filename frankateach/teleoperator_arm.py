@@ -95,6 +95,7 @@ class FrankaArmOperator:
 # Get the teleop state (Pause or Continue)
     def _get_arm_teleop_state(self):
         reset_stat = self._arm_teleop_state_subscriber.recv_keypoints()
+        print(reset_stat)
         if reset_stat:
             reset_stat = np.asanyarray(reset_stat).reshape(1)[0] # Make sure this data is one dimensional
         else:
