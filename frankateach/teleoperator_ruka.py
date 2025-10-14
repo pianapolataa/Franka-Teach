@@ -122,6 +122,7 @@ class RukaOperator:
             pass
         finally:
             self._transformed_hand_keypoint_subscriber.stop()
+            self.handler.hand.close()
             # self.action_socket.close()
 
         print("Stopping the ruka teleoperator!")
