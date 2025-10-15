@@ -135,6 +135,8 @@ class Robot(FrankaInterface):
         timeout=7,
         gripper_open=False,
     ):
+        
+        print("start pos called")
         start_joint_pos = [
             0.09162008114028396,
             -0.19826458111314524,
@@ -176,7 +178,6 @@ class Robot(FrankaInterface):
                 controller_cfg=controller_cfg,
             )
             end_time = time.time()
-            print("start pos called")
 
             # Add timeout
             if end_time - start_time > timeout:
