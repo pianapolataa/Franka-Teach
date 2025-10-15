@@ -248,28 +248,14 @@ class FrankaArmOperator:
                 return None
             self.hand_init_H = self._turn_frame_to_homo_mat(wrist_state)  # wrist 4x4 matrix
 
-            #
-            action = FrankaAction(
-            pos=[0, 0, 0],
-            quat=[0, 0, 0, 0],
-            gripper=self.gripper_state,
-            reset=False,
-            timestamp=time.time(),
-             )
-            self.action_socket.send(bytes(pickle.dumps(action, protocol=-1)))
-            robot_state = pickle.loads(self.action_socket.recv())
-            print("Current joint positions:")
-            print(robot_state.joint_pos)
-            #
-
             print("Resetting robot..")
-            # action = FrankaAction(
-            #     pos=np.zeros(3),
-            #     quat=np.zeros(4),
-            #     gripper=self.gripper_state,
-            #     reset=True,
-            #     timestamp=time.time(),
-            # )
+            action = FrankaAction(
+                pos=np.zeros(3),
+                quat=np.zeros(4),
+                gripper=self.gripper_state,
+                reset=True,
+                timestamp=time.time(),
+            )
             self.action_socket.send(bytes(pickle.dumps(action, protocol=-1)))
             print("1st frame: finish sending reset action")
             robot_state = pickle.loads(self.action_socket.recv())
