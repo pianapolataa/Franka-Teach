@@ -262,7 +262,7 @@ class FrankaArmOperator:
             print("1st frame: finish receiving robot state")
             # Move to offset position
             target_pos = robot_state.pos + self.home_offset
-            target_quat = robot_state.quat
+            target_quat = robot_state.quat + [0.966, 0.0, 0.0, 0.259]
             action = FrankaAction(
                 pos=target_pos.flatten().astype(np.float32),
                 quat=target_quat.flatten().astype(np.float32),
