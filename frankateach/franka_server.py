@@ -176,6 +176,7 @@ class Robot(FrankaInterface):
                 controller_cfg=controller_cfg,
             )
             end_time = time.time()
+            print("start pos called")
 
             # Add timeout
             if end_time - start_time > timeout:
