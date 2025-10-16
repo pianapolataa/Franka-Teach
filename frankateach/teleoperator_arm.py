@@ -313,8 +313,7 @@ class FrankaArmOperator:
             
 
             target_pos = self.home_pos + relative_pos
-            # target_rot = self.home_rot @ relative_rot
-            target_rot = self.home_rot
+            target_rot = self.home_rot @ relative_rot
             target_quat = transform_utils.mat2quat(target_rot)
 
 
