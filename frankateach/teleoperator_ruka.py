@@ -106,7 +106,7 @@ class RukaOperator:
            
 
         if self.start_teleop:
-            self.handler.step(transformed_hand_coords, 30)
+            self.handler.step(transformed_hand_coords, 10)
   
 
     def stream(self):
