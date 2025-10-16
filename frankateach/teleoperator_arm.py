@@ -311,9 +311,10 @@ class FrankaArmOperator:
             relative_pos = relative_affine[:3, 3]
             relative_rot = relative_affine[:3, :3]
             
-
             target_pos = self.home_pos + relative_pos
             target_rot = self.home_rot @ relative_rot
+            R_pitch_flip = R.from_euler('y', 180, degrees=True).as_matrix()  # Y = pitch axis
+            target_rot = target_rot @ R_pitch_flip
             target_quat = transform_utils.mat2quat(target_rot)
 
 
