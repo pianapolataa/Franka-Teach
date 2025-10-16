@@ -76,8 +76,9 @@ class TransformHandPositionCoords():
         )
 
         # Finding the rotation matrix and rotating the coordinates
-        rotation_matrix = np.linalg.solve(original_coord_frame, np.eye(3)).T
-        transformed_hand_coords = (rotation_matrix @ translated_coords.T).T
+        # rotation_matrix = np.linalg.solve(original_coord_frame, np.eye(3)).T
+        # transformed_hand_coords = (rotation_matrix @ translated_coords.T).T
+        transformed_hand_coords = translated_coords
         
         # For teleoperating ruka hand
         ordered_joints = self._get_ordered_joints(transformed_hand_coords)
