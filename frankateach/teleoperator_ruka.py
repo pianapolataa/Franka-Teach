@@ -82,7 +82,6 @@ class RukaOperator:
         arm_teleop_state = self._get_arm_teleop_state()
         print(arm_teleop_state)
         transformed_hand_coords = self._get_hand_coords() # (24, 3)
-        print(transformed_hand_coords)
 
         if arm_teleop_state ==  ARM_TELEOP_CONT:
             self.start_teleop = True
