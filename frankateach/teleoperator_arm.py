@@ -213,7 +213,7 @@ class FrankaArmOperator:
         )
         return relative_affine
 
-    def clip_rotation(rotated_frame, axis_vec, angle_min_deg, angle_max_deg):
+    def clip_rotation(self, rotated_frame, axis_vec, angle_min_deg, angle_max_deg):
         """
         Reduces arm rotation around a given axis if it exceeds min / max reached by hand
         sets to zero if hand can compensate
