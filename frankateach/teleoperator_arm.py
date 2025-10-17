@@ -213,6 +213,45 @@ class FrankaArmOperator:
         )
         return relative_affine
 
+    def clip_rotation(rotated_frame, axis_vec, angle_min_deg, angle_max_deg):
+        """
+        Reduces arm rotation around a given axis if it exceeds min / max reached by hand
+        sets to zero if hand can compensate
+        """
+        origin, x_axis, y_axis, z_axis = rotated_frame
+        axis_vec = axis_vec / np.linalg.norm(axis_vec)
+        # Current rotation matrix
+        R_current = np.column_stack([
+            x_axis / np.linalg.norm(x_axis),
+            y_axis / np.linalg.norm(y_axis),
+            z_axis / np.linalg.norm(z_axis)
+        ])
+
+        # Rotation vector
+        rot = R.from_matrix(R_current)
+        rotvec = rot.as_rotvec()
+        angle = np.linalg.norm(rotvec)
+        if angle < 1e-6:
+            return rotated_frame
+
+        rot_axis = rotvec / angle
+        rotation_about_axis = np.dot(rot_axis, axis_vec) * angle
+        min_rad = np.deg2rad(angle_min_deg)
+        max_rad = np.deg2rad(angle_max_deg)
+
+        delta_angle = 0
+        if rotation_about_axis < min_rad:
+            delta_angle = delta_angle - min_rad
+        elif rotation_about_axis > max_rad:
+            delta_angle = delta_angle - max_rad
+        else:
+            delta_angle = 0
+
+        # Apply correction
+        R_correction = R.from_rotvec(delta_angle * axis_vec).as_matrix()
+        R_new = R_correction @ R_current
+        return [origin, R_new[:, 0], R_new[:, 1], R_new[:, 2]]
+
 
     def _apply_retargeted_angles(self) -> None:
         arm_teleop_state = self._get_arm_teleop_state()
@@ -246,7 +285,7 @@ class FrankaArmOperator:
             while  wrist_state is None:
                 wrist_state = self._get_hand_frame()
                 return None
-            ##
+                        
             origin = wrist_state[0]
             x_axis = wrist_state[1]
             y_axis = wrist_state[2]
@@ -258,8 +297,6 @@ class FrankaArmOperator:
             z_rot = rot_180 @ z_axis
             rotated_frame = [origin, x_rot, y_rot, z_rot]
             self.hand_init_H = self._turn_frame_to_homo_mat(rotated_frame)
-            ##
-            # self.hand_init_H = self._turn_frame_to_homo_mat(wrist_state)  # wrist 4x4 matrix
 
             print("Resetting robot..")
             action = FrankaAction(
@@ -306,7 +343,7 @@ class FrankaArmOperator:
             moving_wrist = self._get_hand_frame()
             while (moving_wrist is None):
                 moving_wrist = self._get_hand_frame()
-            ##
+            
             origin = moving_wrist[0]
             x_axis = moving_wrist[1]
             y_axis = moving_wrist[2]
@@ -316,9 +353,9 @@ class FrankaArmOperator:
             y_rot = rot_180 @ y_axis
             z_rot = rot_180 @ z_axis
             rotated_frame = [origin, x_rot, y_rot, z_rot]
-            self.hand_moving_H = self._turn_frame_to_homo_mat(rotated_frame)
-            ##
-            # self.hand_moving_H = self._turn_frame_to_homo_mat(moving_wrist)
+            rotated_frame_1 = self.clip_rotation(rotated_frame, axis_vec=y_rot, angle_min_deg=-25, angle_max_deg=25)
+            rotated_frame_2 = self.clip_rotation(rotated_frame_1, axis_vec=x_rot, angle_min_deg=0, angle_max_deg=55)
+            self.hand_moving_H = self._turn_frame_to_homo_mat(rotated_frame_2)
 
             # Transformation code
             # all 4x4 matrix
