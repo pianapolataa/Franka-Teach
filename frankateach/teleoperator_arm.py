@@ -353,9 +353,7 @@ class FrankaArmOperator:
             y_rot = rot_180 @ y_axis
             z_rot = rot_180 @ z_axis
             rotated_frame = [origin, x_rot, y_rot, z_rot]
-            rotated_frame_1 = self.clip_rotation(rotated_frame, axis_vec=y_rot, angle_min_deg=-25, angle_max_deg=25)
-            rotated_frame_2 = self.clip_rotation(rotated_frame_1, axis_vec=rotated_frame_1[1], angle_min_deg=0, angle_max_deg=55)
-            self.hand_moving_H = self._turn_frame_to_homo_mat(rotated_frame_2)
+            self.hand_moving_H = self._turn_frame_to_homo_mat(rotated_frame)
 
             # Transformation code
             # all 4x4 matrix
@@ -363,8 +361,20 @@ class FrankaArmOperator:
             H_HT_HH = copy(self.hand_moving_H) # changing Homo matrix that takes P_HT to P_HH
             H_RI_RH = copy(self.robot_init_H) # not change robot home pos; Homo matrix that takes P_RI to P_RH
 
+            ##
+            H_rel = np.linalg.inv(H_HI_HH) @ H_HT_HH
+            R_rel = H_rel[:3, :3]
+            origin_rel = np.zeros(3)
+            rel_frame = [origin_rel, R_rel[:, 0], R_rel[:, 1], R_rel[:, 2]]
+            rel_frame_1 = self.clip_rotation(rel_frame, axis_vec=rel_frame[1], angle_min_deg=-25, angle_max_deg=25)
+            rel_frame_2 = self.clip_rotation(rel_frame_1, axis_vec=rel_frame_1[0], angle_min_deg=0, angle_max_deg=55)
+            R_rel_clipped = np.column_stack(rel_frame_2[1:])
+            H_rel_clipped = np.eye(4)
+            H_rel_clipped[:3, :3] = R_rel_clipped
+            H_rel_clipped[:3, 3] = H_rel[:3, 3]
+            ##
             
-            self.robot_moving_H = self._to_robot_frame(H_HI_HH, H_HT_HH)
+            self.robot_moving_H = self._to_robot_frame(H_HI_HH, H_rel_clipped)
             relative_affine = self.robot_moving_H
 
             # Use a Filter
