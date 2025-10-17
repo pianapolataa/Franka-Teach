@@ -246,7 +246,20 @@ class FrankaArmOperator:
             while  wrist_state is None:
                 wrist_state = self._get_hand_frame()
                 return None
-            self.hand_init_H = self._turn_frame_to_homo_mat(wrist_state)  # wrist 4x4 matrix
+            ##
+            origin = wrist_state[0]
+            x_axis = wrist_state[1]
+            y_axis = wrist_state[2]
+            z_axis = wrist_state[3]
+            # 180° rotation around the palm normal (y-axis)
+            rot_180 = R.from_rotvec(np.pi * y_axis / np.linalg.norm(y_axis)).as_matrix()
+            x_rot = rot_180 @ x_axis
+            y_rot = rot_180 @ y_axis
+            z_rot = rot_180 @ z_axis
+            rotated_frame = [origin, x_rot, y_rot, z_rot]
+            self.hand_init_H = self._turn_frame_to_homo_mat(rotated_frame)
+            ##
+            # self.hand_init_H = self._turn_frame_to_homo_mat(wrist_state)  # wrist 4x4 matrix
 
             print("Resetting robot..")
             action = FrankaAction(
@@ -293,7 +306,20 @@ class FrankaArmOperator:
             moving_wrist = self._get_hand_frame()
             while (moving_wrist is None):
                 moving_wrist = self._get_hand_frame()
-            self.hand_moving_H = self._turn_frame_to_homo_mat(moving_wrist)
+            ##
+            origin = moving_wrist[0]
+            x_axis = moving_wrist[1]
+            y_axis = moving_wrist[2]
+            z_axis = moving_wrist[3]
+            rot_180 = R.from_rotvec(np.pi * y_axis / np.linalg.norm(y_axis)).as_matrix()
+            x_rot = rot_180 @ x_axis
+            y_rot = rot_180 @ y_axis
+            z_rot = rot_180 @ z_axis
+            rotated_frame = [origin, x_rot, y_rot, z_rot]
+            self.hand_moving_H = self._turn_frame_to_homo_mat(rotated_frame)
+            ##
+            # self.hand_moving_H = self._turn_frame_to_homo_mat(moving_wrist)
+
             # Transformation code
             # all 4x4 matrix
             H_HI_HH = copy(self.hand_init_H) # Homo matrix that takes P_HI  to P_HH - Point in Inital Hand Frame to Point in current hand Frame
