@@ -241,11 +241,11 @@ class FrankaArmOperator:
 
         delta_angle = 0
         if rotation_about_axis < min_rad:
-            delta_angle = delta_angle - min_rad
+            delta_angle = -min_rad
         elif rotation_about_axis > max_rad:
-            delta_angle = delta_angle - max_rad
+            delta_angle = -max_rad
         else:
-            delta_angle = 0
+            delta_angle = -rotation_about_axis
 
         # Apply correction
         R_correction = R.from_rotvec(delta_angle * axis_vec).as_matrix()
@@ -354,7 +354,7 @@ class FrankaArmOperator:
             z_rot = rot_180 @ z_axis
             rotated_frame = [origin, x_rot, y_rot, z_rot]
             rotated_frame_1 = self.clip_rotation(rotated_frame, axis_vec=y_rot, angle_min_deg=-25, angle_max_deg=25)
-            rotated_frame_2 = self.clip_rotation(rotated_frame_1, axis_vec=x_rot, angle_min_deg=0, angle_max_deg=55)
+            rotated_frame_2 = self.clip_rotation(rotated_frame_1, axis_vec=rotated_frame_1[1], angle_min_deg=0, angle_max_deg=55)
             self.hand_moving_H = self._turn_frame_to_homo_mat(rotated_frame_2)
 
             # Transformation code
