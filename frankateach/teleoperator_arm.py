@@ -336,7 +336,7 @@ class FrankaArmOperator:
             self.robot_init_H[:3, :3] = self.home_rot
             self.robot_init_H[:3, 3] = self.home_pos
 
-            self.is_first_frame = False
+            # self.is_first_frame = False
 
 
         if self.start_teleop:
