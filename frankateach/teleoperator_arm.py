@@ -366,8 +366,8 @@ class FrankaArmOperator:
             R_rel = H_rel[:3, :3]
             origin_rel = np.zeros(3)
             rel_frame = [origin_rel, R_rel[:, 0], R_rel[:, 1], R_rel[:, 2]]
-            rel_frame_1 = self.clip_rotation(rel_frame, axis_vec=rel_frame[1], angle_min_deg=-25, angle_max_deg=25)
-            rel_frame_2 = self.clip_rotation(rel_frame_1, axis_vec=rel_frame_1[0], angle_min_deg=0, angle_max_deg=55)
+            rel_frame_1 = self.clip_rotation(rel_frame, axis_vec=rel_frame[2], angle_min_deg=-25, angle_max_deg=25)
+            rel_frame_2 = self.clip_rotation(rel_frame_1, axis_vec=rel_frame_1[1], angle_min_deg=0, angle_max_deg=55)
             R_rel_clipped = np.column_stack(rel_frame_2[1:])
             H_rel_clipped = np.eye(4)
             H_rel_clipped[:3, :3] = R_rel_clipped
