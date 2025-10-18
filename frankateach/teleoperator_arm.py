@@ -213,45 +213,6 @@ class FrankaArmOperator:
         )
         return relative_affine
 
-    def clip_rotation(self, rotated_frame, axis_vec, angle_min_deg, angle_max_deg):
-        """
-        Reduces arm rotation around a given axis if it exceeds min / max reached by hand
-        sets to zero if hand can compensate
-        """
-        origin, x_axis, y_axis, z_axis = rotated_frame
-        axis_vec = axis_vec / np.linalg.norm(axis_vec)
-        # Current rotation matrix
-        R_current = np.column_stack([
-            x_axis / np.linalg.norm(x_axis),
-            y_axis / np.linalg.norm(y_axis),
-            z_axis / np.linalg.norm(z_axis)
-        ])
-
-        # Rotation vector
-        rot = R.from_matrix(R_current)
-        rotvec = rot.as_rotvec()
-        angle = np.linalg.norm(rotvec)
-        if angle < 1e-6:
-            return rotated_frame
-
-        rot_axis = rotvec / angle
-        rotation_about_axis = np.dot(rot_axis, axis_vec) * angle
-        min_rad = np.deg2rad(angle_min_deg)
-        max_rad = np.deg2rad(angle_max_deg)
-
-        delta_angle = 0
-        if rotation_about_axis < min_rad:
-            delta_angle = -min_rad
-        elif rotation_about_axis > max_rad:
-            delta_angle = -max_rad
-        else:
-            delta_angle = -rotation_about_axis
-
-        # Apply correction
-        R_correction = R.from_rotvec(delta_angle * axis_vec).as_matrix()
-        R_new = R_correction @ R_current
-        return [origin, R_new[:, 0], R_new[:, 1], R_new[:, 2]]
-
 
     def _apply_retargeted_angles(self) -> None:
         arm_teleop_state = self._get_arm_teleop_state()
@@ -285,7 +246,7 @@ class FrankaArmOperator:
             while  wrist_state is None:
                 wrist_state = self._get_hand_frame()
                 return None
-                        
+            ##
             origin = wrist_state[0]
             x_axis = wrist_state[1]
             y_axis = wrist_state[2]
@@ -297,6 +258,8 @@ class FrankaArmOperator:
             z_rot = rot_180 @ z_axis
             rotated_frame = [origin, x_rot, y_rot, z_rot]
             self.hand_init_H = self._turn_frame_to_homo_mat(rotated_frame)
+            ##
+            # self.hand_init_H = self._turn_frame_to_homo_mat(wrist_state)  # wrist 4x4 matrix
 
             print("Resetting robot..")
             action = FrankaAction(
@@ -336,14 +299,14 @@ class FrankaArmOperator:
             self.robot_init_H[:3, :3] = self.home_rot
             self.robot_init_H[:3, 3] = self.home_pos
 
-            # self.is_first_frame = False
+            self.is_first_frame = False
 
 
         if self.start_teleop:
             moving_wrist = self._get_hand_frame()
             while (moving_wrist is None):
                 moving_wrist = self._get_hand_frame()
-            
+            ##
             origin = moving_wrist[0]
             x_axis = moving_wrist[1]
             y_axis = moving_wrist[2]
@@ -354,6 +317,8 @@ class FrankaArmOperator:
             z_rot = rot_180 @ z_axis
             rotated_frame = [origin, x_rot, y_rot, z_rot]
             self.hand_moving_H = self._turn_frame_to_homo_mat(rotated_frame)
+            ##
+            # self.hand_moving_H = self._turn_frame_to_homo_mat(moving_wrist)
 
             # Transformation code
             # all 4x4 matrix
@@ -361,20 +326,8 @@ class FrankaArmOperator:
             H_HT_HH = copy(self.hand_moving_H) # changing Homo matrix that takes P_HT to P_HH
             H_RI_RH = copy(self.robot_init_H) # not change robot home pos; Homo matrix that takes P_RI to P_RH
 
-            ##
-            H_rel = np.linalg.inv(H_HI_HH) @ H_HT_HH
-            R_rel = H_rel[:3, :3]
-            origin_rel = np.zeros(3)
-            rel_frame = [origin_rel, R_rel[:, 0], R_rel[:, 1], R_rel[:, 2]]
-            rel_frame_1 = self.clip_rotation(rel_frame, axis_vec=rel_frame[2], angle_min_deg=-25, angle_max_deg=25)
-            rel_frame_2 = self.clip_rotation(rel_frame_1, axis_vec=rel_frame_1[1], angle_min_deg=0, angle_max_deg=55)
-            R_rel_clipped = np.column_stack(rel_frame_2[1:])
-            H_rel_clipped = np.eye(4)
-            H_rel_clipped[:3, :3] = R_rel_clipped
-            H_rel_clipped[:3, 3] = H_rel[:3, 3]
-            ##
             
-            self.robot_moving_H = self._to_robot_frame(H_HI_HH, H_rel_clipped)
+            self.robot_moving_H = self._to_robot_frame(H_HI_HH, H_HT_HH)
             relative_affine = self.robot_moving_H
 
             # Use a Filter
