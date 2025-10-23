@@ -379,8 +379,9 @@ class FrankaArmOperator:
             print("Raw angles:", angles)
             # calculate hand angles
             hand_angles = angles.copy()
-            # hand_angles[2] = self._scale_angle(hand_angles[2], -25, 25)   # palm normal
-            # hand_angles[0] = self._scale_angle(hand_angles[0], -60, 0)  # side axis
+            hand_angles[2] = self._scale_angle(hand_angles[2], -25, 25)   # palm normal
+            hand_angles[0] = self._scale_angle(hand_angles[0], -60, 0)  # side axis
+            hand_angles[1] = 0
             print("Hand angles:", hand_angles)
 
             # rebuild hand matrix and find residual for arm
