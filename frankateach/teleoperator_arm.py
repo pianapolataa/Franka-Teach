@@ -388,7 +388,7 @@ class FrankaArmOperator:
 
             # Scale selected local axes
             angles[2] = self._scale_angle(angles[2], -30, 30)  # palm normal
-            angles[0] = self._scale_angle(angles[0], -60, 0)   # side axis
+            angles[0] = self._scale_angle(angles[0], -70, 0)   # side axis
 
             print("Scaled local angles:", angles)
 
