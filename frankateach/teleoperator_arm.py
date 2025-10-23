@@ -378,13 +378,25 @@ class FrankaArmOperator:
             ##
             # Define hand axes from initial hand frame
             hand_axes_mat = self.hand_init_H[:3, :3].copy()
-            angles = self._angles_around_axes(relative_rot, hand_axes_mat)
-            print("Raw angles:", angles)
-            # angles[0] = side axis, 1 = wrist axis, 2 = palm normal
-            angles[2] = self._scale_angle(angles[2], -7, 7)
-            angles[0] = self._scale_angle(angles[0], -90, -0)
-            print("Scaled angles:", angles)
-            relative_rot_scaled = self._rot_from_hand_axes(angles, hand_axes_mat)
+
+            # Convert relative rotation from world to hand-local coordinates
+            relative_rot_local = hand_axes_mat.T @ relative_rot @ hand_axes_mat
+
+            # Compute angles around the hand's local axes
+            angles = self._angles_around_axes(relative_rot_local, np.eye(3))
+            print("Raw local angles:", angles)
+
+            # Scale selected local axes
+            angles[2] = self._scale_angle(angles[2], -30, 30)  # palm normal
+            angles[0] = self._scale_angle(angles[0], -60, 0)   # side axis
+
+            print("Scaled local angles:", angles)
+
+            # Rebuild the scaled rotation in the hand-local frame
+            relative_rot_local_scaled = self._rot_from_hand_axes(angles, np.eye(3))
+
+            # Convert it back to world frame
+            relative_rot_scaled = hand_axes_mat @ relative_rot_local_scaled @ hand_axes_mat.T
             ##
             
             target_pos = self.home_pos + relative_pos
