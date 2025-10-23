@@ -225,6 +225,10 @@ class FrankaArmOperator:
         """
         hand_axes_mat = np.asarray(hand_axes_mat).reshape(3, 3)
         hand_axes_mat = R.from_matrix(hand_axes_mat).as_matrix()
+        Q, _ = np.linalg.qr(hand_axes_mat)
+        if np.linalg.det(Q) < 0:
+            Q[:, -1] *= -1
+        hand_axes_mat = Q
         R_rel_wrist = hand_axes_mat.T @ relative_rot @ hand_axes_mat
         
         # Decompose into xyz euler angles (hand frame)
@@ -238,6 +242,10 @@ class FrankaArmOperator:
         angles_deg = np.asarray(angles_deg).reshape(3,)
         hand_axes_mat = np.asarray(hand_axes_mat).reshape(3, 3)
         hand_axes_mat = R.from_matrix(hand_axes_mat).as_matrix()
+        Q, _ = np.linalg.qr(hand_axes_mat)
+        if np.linalg.det(Q) < 0:
+            Q[:, -1] *= -1
+        hand_axes_mat = Q
         R_wrist_scaled = R.from_euler('XYZ', angles_deg, degrees=True).as_matrix()
         
         # Convert back to world frame
@@ -378,7 +386,7 @@ class FrankaArmOperator:
             # rebuild hand matrix and find residual for arm
             R_hand_limited = self._rot_from_hand_axes(hand_angles, hand_axes_mat)
             R_arm_compensation = relative_rot @ R_hand_limited.T
-            target_rot = self.home_rot @ relative_rot
+            target_rot = self.home_rot @ R_arm_compensation
             ##
             
             target_pos = self.home_pos + relative_pos
