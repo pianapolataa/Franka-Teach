@@ -381,7 +381,7 @@ class FrankaArmOperator:
             angles = self._angles_around_axes(relative_rot, hand_axes_mat)
             print("Raw angles:", angles)
             # angles[0] = side axis, 1 = wrist axis, 2 = palm normal
-            angles[2] = self._scale_angle(angles[2], -40, 40)
+            angles[2] = self._scale_angle(angles[2], -30, 30)
             angles[0] = self._scale_angle(angles[0], -80, -10)
             print("Scaled angles:", angles)
             relative_rot_scaled = self._rot_from_hand_axes(angles, hand_axes_mat)
