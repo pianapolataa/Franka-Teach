@@ -380,7 +380,7 @@ class FrankaArmOperator:
             hand_axes_mat = self.hand_init_H[:3, :3].copy()
             angles = self._angles_around_axes(relative_rot, hand_axes_mat)
             # angles[0] = side axis, 1 = wrist axis, 2 = palm normal
-            angles[2] = self._scale_angle(angles[2], -25, 25)
+            angles[2] = self._scale_angle(angles[2], -90, 90)
             angles[0] = self._scale_angle(angles[0], 0, 55)
             relative_rot_scaled = self._rot_from_hand_axes(angles, hand_axes_mat)
             ##
