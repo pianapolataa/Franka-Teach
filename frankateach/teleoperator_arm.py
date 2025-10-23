@@ -214,28 +214,22 @@ class FrankaArmOperator:
         return relative_affine
 
     def _scale_angle(self, angle, min_angle, max_angle):
-        if min_angle <= angle <= max_angle:
-            return 0.0
-        elif angle < min_angle:
-            return angle - min_angle
-        else:
-            return angle - max_angle
+        angle = max(angle, min_angle)
+        angle = min(angle, max_angle)
+        return angle
+
 
     def _angles_around_axes(self, relative_rot: np.ndarray, hand_axes_mat: np.ndarray):
         """
         Returns signed rotation angles about initial wrist axes (degrees)
         """
         hand_axes_mat = np.asarray(hand_axes_mat).reshape(3, 3)
-        Q, _ = np.linalg.qr(hand_axes_mat)
-        if np.linalg.det(Q) < 0:
-            Q[:, -1] *= -1
-        hand_axes_mat = Q
-
-        # Change of basis, express relative rotation in wrist axis coords
+        hand_axes_mat = R.from_matrix(hand_axes_mat).as_matrix()
         R_rel_wrist = hand_axes_mat.T @ relative_rot @ hand_axes_mat
-        rotvec = R.from_matrix(R_rel_wrist).as_rotvec()
-        return np.degrees(rotvec)
-
+        
+        # Decompose into xyz euler angles (hand frame)
+        angles = R.from_matrix(R_rel_wrist).as_euler('XYZ', degrees=True)
+        return angles
 
     def _rot_from_hand_axes(self, angles_deg, hand_axes_mat: np.ndarray):
         """
@@ -243,16 +237,12 @@ class FrankaArmOperator:
         """
         angles_deg = np.asarray(angles_deg).reshape(3,)
         hand_axes_mat = np.asarray(hand_axes_mat).reshape(3, 3)
-        Q, _ = np.linalg.qr(hand_axes_mat)
-        if np.linalg.det(Q) < 0:
-            Q[:, -1] *= -1
-        hand_axes_mat = Q
-        rotvec_wrist = np.radians(angles_deg)
-
-        # Build rotation in wrist frame then convert back to world frame
-        R_rel_wrist = R.from_rotvec(rotvec_wrist).as_matrix()
-        R_rel_world = hand_axes_mat @ R_rel_wrist @ hand_axes_mat.T
-        return R_rel_world
+        hand_axes_mat = R.from_matrix(hand_axes_mat).as_matrix()
+        R_wrist_scaled = R.from_euler('XYZ', angles_deg, degrees=True).as_matrix()
+        
+        # Convert back to world frame
+        R_world_scaled = hand_axes_mat @ R_wrist_scaled @ hand_axes_mat.T
+        return R_world_scaled
 
     def _apply_retargeted_angles(self) -> None:
         arm_teleop_state = self._get_arm_teleop_state()
@@ -376,31 +366,22 @@ class FrankaArmOperator:
             relative_rot = relative_affine[:3, :3]
 
             ##
-            # Define hand axes from initial hand frame
             hand_axes_mat = self.hand_init_H[:3, :3].copy()
+            angles = self._angles_around_axes(relative_rot, hand_axes_mat)
+            print("Raw angles:", angles)
+            # calculate hand angles
+            hand_angles = angles.copy()
+            hand_angles[2] = self._scale_angle(hand_angles[2], -25, 25)   # palm normal
+            hand_angles[0] = self._scale_angle(hand_angles[0], -60, 0)  # side axis
+            print("Hand angles:", hand_angles)
 
-            # Convert relative rotation from world to hand-local coordinates
-            relative_rot_local = hand_axes_mat.T @ relative_rot @ hand_axes_mat
-
-            # Compute angles around the hand's local axes
-            angles = self._angles_around_axes(relative_rot_local, np.eye(3))
-            print("Raw local angles:", angles)
-
-            # Scale selected local axes
-            angles[2] = self._scale_angle(angles[2], -30, 30)  # palm normal
-            angles[0] = self._scale_angle(angles[0], -70, 0)   # side axis
-
-            print("Scaled local angles:", angles)
-
-            # Rebuild the scaled rotation in the hand-local frame
-            relative_rot_local_scaled = self._rot_from_hand_axes(angles, np.eye(3))
-
-            # Convert it back to world frame
-            relative_rot_scaled = hand_axes_mat @ relative_rot_local_scaled @ hand_axes_mat.T
+            # rebuild hand matrix and find residual for arm
+            R_hand_limited = self._rot_from_hand_axes(hand_angles, hand_axes_mat)
+            R_arm_compensation = relative_rot @ R_hand_limited.T
+            target_rot = self.home_rot @ R_arm_compensation
             ##
             
             target_pos = self.home_pos + relative_pos
-            target_rot = self.home_rot @ relative_rot_scaled # relative_rot
             target_quat = transform_utils.mat2quat(target_rot)
 
 
