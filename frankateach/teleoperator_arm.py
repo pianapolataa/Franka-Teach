@@ -213,6 +213,46 @@ class FrankaArmOperator:
         )
         return relative_affine
 
+    def _scale_angle(self, angle, min_angle, max_angle):
+        if min_angle <= angle <= max_angle:
+            return 0.0
+        elif angle < min_angle:
+            return angle - min_angle
+        else:
+            return angle - max_angle
+
+    def _angles_around_axes(self, relative_rot: np.ndarray, hand_axes_mat: np.ndarray):
+        """
+        Returns signed rotation angles about initial wrist axes (degrees)
+        """
+        hand_axes_mat = np.asarray(hand_axes_mat).reshape(3, 3)
+        Q, _ = np.linalg.qr(hand_axes_mat)
+        if np.linalg.det(Q) < 0:
+            Q[:, -1] *= -1
+        hand_axes_mat = Q
+
+        # Change of basis, express relative rotation in wrist axis coords
+        R_rel_wrist = hand_axes_mat.T @ relative_rot @ hand_axes_mat
+        rotvec = R.from_matrix(R_rel_wrist).as_rotvec()
+        return np.degrees(rotvec)
+
+
+    def _rot_from_hand_axes(self, angles_deg, hand_axes_mat: np.ndarray):
+        """
+        Rebuild rotation matrix from angles about wrist x,y,z axes
+        """
+        angles_deg = np.asarray(angles_deg).reshape(3,)
+        hand_axes_mat = np.asarray(hand_axes_mat).reshape(3, 3)
+        Q, _ = np.linalg.qr(hand_axes_mat)
+        if np.linalg.det(Q) < 0:
+            Q[:, -1] *= -1
+        hand_axes_mat = Q
+        rotvec_wrist = np.radians(angles_deg)
+
+        # Build rotation in wrist frame then convert back to world frame
+        R_rel_wrist = R.from_rotvec(rotvec_wrist).as_matrix()
+        R_rel_world = hand_axes_mat @ R_rel_wrist @ hand_axes_mat.T
+        return R_rel_world
 
     def _apply_retargeted_angles(self) -> None:
         arm_teleop_state = self._get_arm_teleop_state()
@@ -306,7 +346,7 @@ class FrankaArmOperator:
             moving_wrist = self._get_hand_frame()
             while (moving_wrist is None):
                 moving_wrist = self._get_hand_frame()
-            ##
+    
             origin = moving_wrist[0]
             x_axis = moving_wrist[1]
             y_axis = moving_wrist[2]
@@ -317,8 +357,6 @@ class FrankaArmOperator:
             z_rot = rot_180 @ z_axis
             rotated_frame = [origin, x_rot, y_rot, z_rot]
             self.hand_moving_H = self._turn_frame_to_homo_mat(rotated_frame)
-            ##
-            # self.hand_moving_H = self._turn_frame_to_homo_mat(moving_wrist)
 
             # Transformation code
             # all 4x4 matrix
@@ -336,9 +374,19 @@ class FrankaArmOperator:
             # print("home_pose", self.home_pos)
             relative_pos = relative_affine[:3, 3]
             relative_rot = relative_affine[:3, :3]
+
+            ##
+            # Define hand axes from initial hand frame
+            hand_axes_mat = self.hand_init_H[:3, :3].copy()
+            angles = self._angles_around_axes(relative_rot, hand_axes_mat)
+            # angles[0] = side axis, 1 = wrist axis, 2 = palm normal
+            angles[2] = self._scale_angle(angles[2], -25, 25)
+            angles[0] = self._scale_angle(angles[0], 0, 55)
+            relative_rot_scaled = self._rot_from_hand_axes(angles, hand_axes_mat)
+            ##
             
             target_pos = self.home_pos + relative_pos
-            target_rot = self.home_rot @ relative_rot
+            target_rot = self.home_rot @ relative_rot_scaled # relative_rot
             target_quat = transform_utils.mat2quat(target_rot)
 
 
