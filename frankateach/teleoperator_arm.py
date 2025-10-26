@@ -252,6 +252,19 @@ class FrankaArmOperator:
         R_world_scaled = hand_axes_mat @ R_wrist_scaled @ hand_axes_mat.T
         return R_world_scaled
 
+    def _rotate_frame(self, angle_rad, wrist_state):
+        # rotate frame around the palm normal (y-axis)
+        origin = wrist_state[0]
+        x_axis = wrist_state[1]
+        y_axis = wrist_state[2]
+        z_axis = wrist_state[3]
+        rot = R.from_rotvec(angle_rad * y_axis / np.linalg.norm(y_axis)).as_matrix()
+        x_rot = rot @ x_axis
+        y_rot = rot @ y_axis
+        z_rot = rot @ z_axis
+        rotated_frame = [origin, x_rot, y_rot, z_rot]
+        return rotated_frame
+
     def _apply_retargeted_angles(self) -> None:
         arm_teleop_state = self._get_arm_teleop_state()
         arm_teleoperation_scale_mode = self._get_resolution_scale_mode()
@@ -262,6 +275,7 @@ class FrankaArmOperator:
         if arm_teleop_state ==  ARM_TELEOP_STOP:
             self.start_teleop = False
             self.hand_init_H = None
+            self.hand_init_offset_H = None
             # receive the robot state
             self.action_socket.send(b"get_state")
             robot_state: FrankaState = pickle.loads(self.action_socket.recv())
@@ -284,20 +298,11 @@ class FrankaArmOperator:
             while  wrist_state is None:
                 wrist_state = self._get_hand_frame()
                 return None
-            ##
-            origin = wrist_state[0]
-            x_axis = wrist_state[1]
-            y_axis = wrist_state[2]
-            z_axis = wrist_state[3]
-            # 180° rotation around the palm normal (y-axis)
-            rot_180 = R.from_rotvec(np.pi * y_axis / np.linalg.norm(y_axis)).as_matrix()
-            x_rot = rot_180 @ x_axis
-            y_rot = rot_180 @ y_axis
-            z_rot = rot_180 @ z_axis
-            rotated_frame = [origin, x_rot, y_rot, z_rot]
+            
+            rotated_frame = self._rotate_frame(np.pi, wrist_state)
             self.hand_init_H = self._turn_frame_to_homo_mat(rotated_frame)
-            ##
-            # self.hand_init_H = self._turn_frame_to_homo_mat(wrist_state)  # wrist 4x4 matrix
+            offset_frame = self._rotate_frame(np.pi * 3 / 2, wrist_state)
+            self.hand_init_offset_H = self._turn_frame_to_homo_mat(offset_frame)
 
             print("Resetting robot..")
             action = FrankaAction(
@@ -344,56 +349,47 @@ class FrankaArmOperator:
             moving_wrist = self._get_hand_frame()
             while (moving_wrist is None):
                 moving_wrist = self._get_hand_frame()
-    
-            origin = moving_wrist[0]
-            x_axis = moving_wrist[1]
-            y_axis = moving_wrist[2]
-            z_axis = moving_wrist[3]
-            rot_180 = R.from_rotvec(np.pi * y_axis / np.linalg.norm(y_axis)).as_matrix()
-            x_rot = rot_180 @ x_axis
-            y_rot = rot_180 @ y_axis
-            z_rot = rot_180 @ z_axis
-            rotated_frame = [origin, x_rot, y_rot, z_rot]
+            
+            rotated_frame = self._rotate_frame(np.pi, moving_wrist)
             self.hand_moving_H = self._turn_frame_to_homo_mat(rotated_frame)
+            offset_frame = self._rotate_frame(3 * np.pi / 2, moving_wrist)
+            self.hand_moving_offset_H = self._turn_frame_to_homo_mat(offset_frame)
 
             # Transformation code
             # all 4x4 matrix
             H_HI_HH = copy(self.hand_init_H) # Homo matrix that takes P_HI  to P_HH - Point in Inital Hand Frame to Point in current hand Frame
             H_HT_HH = copy(self.hand_moving_H) # changing Homo matrix that takes P_HT to P_HH
+            H_HI_HH_offset = copy(self.hand_init_offset_H)
+            H_HT_HH_offset = copy(self.hand_moving_offset_H)
             H_RI_RH = copy(self.robot_init_H) # not change robot home pos; Homo matrix that takes P_RI to P_RH
-
             
             self.robot_moving_H = self._to_robot_frame(H_HI_HH, H_HT_HH)
             relative_affine = self.robot_moving_H
+            self.robot_moving_offset_H = self._to_robot_frame(H_HI_HH_offset, H_HT_HH_offset)
+            relative_affine_offset = self.robot_moving_offset_H
 
             # Use a Filter
             if self.use_filter:
                 relative_affine = self.comp_filter(relative_affine)
+                relative_affine_offset = self.comp_filter(relative_affine_offset)
             # print("home_pose", self.home_pos)
-            relative_pos = relative_affine[:3, 3]
+            relative_pos = relative_affine_offset[:3, 3]
             relative_rot = relative_affine[:3, :3]
 
-            ##
+            # incorporate hand rotation compensation 
             hand_axes_mat = self.hand_init_H[:3, :3].copy()
             angles = self._angles_around_axes(relative_rot, hand_axes_mat)
-            print("Raw angles:", angles)
-            # calculate hand angles
             hand_angles = angles.copy()
             hand_angles[2] = self._scale_angle(hand_angles[2], -25, 25)   # palm normal
             hand_angles[0] = self._scale_angle(hand_angles[0], -60, 0)  # side axis
             hand_angles[1] = 0
-            print("Hand angles:", hand_angles)
-
             # rebuild hand matrix and find residual for arm
             R_hand_limited = self._rot_from_hand_axes(hand_angles, hand_axes_mat)
             R_arm_compensation = relative_rot @ R_hand_limited.T
             target_rot = self.home_rot @ R_arm_compensation
-            ##
             
             target_pos = self.home_pos + relative_pos
             target_quat = transform_utils.mat2quat(target_rot)
-
-
             target_pos = np.clip(
                 target_pos,
                 a_min=ROBOT_WORKSPACE_MIN,
