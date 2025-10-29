@@ -8,3 +8,4 @@ collect_img: False
 collect_depth: False
 collect_state: True
 collect_reskin: False
+collect_ruka: True

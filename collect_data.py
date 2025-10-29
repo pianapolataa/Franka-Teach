@@ -12,7 +12,7 @@ def main(cfg):
         collect_img=cfg.collect_img,
         collect_depth=cfg.collect_depth,
         collect_state=cfg.collect_state,
-        collect_fingertip = cfg.collect_fingertip,
+        collect_ruka = cfg.collect_ruka,
         collect_reskin=cfg.collect_reskin,
     )
     data_collector.start()
