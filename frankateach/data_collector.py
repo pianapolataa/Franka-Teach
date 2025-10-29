@@ -34,6 +34,7 @@ class DataCollector:
         collect_img=False,
         collect_state=False,
         collect_depth=False,
+        collect_ruka=False,
         collect_reskin=False,
     ):
         self.image_subscribers = {}
