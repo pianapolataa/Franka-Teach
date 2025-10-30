@@ -21,6 +21,8 @@ from frankateach.constants import (
     STATE_PORT,
     DEPTH_PORT_OFFSET,
     RESKIN_STREAM_PORT,
+    RUKA_COMMANDED_STATE_PORT,
+    RUKA_STATE_PORT
 )
 
 
@@ -64,6 +66,14 @@ class DataCollector:
         if collect_reskin:
             self.reskin_subscriber = ReskinSensorSubscriber()
 
+        if collect_ruka:
+            self.ruka_socket = ZMQKeypointSubscriber(
+                host=LOCALHOST, port=RUKA_STATE_PORT, topic="ruka_state"
+            )
+            self.ruka_commanded_state_socket = ZMQKeypointSubscriber(
+                host=LOCALHOST, port=RUKA_COMMANDED_STATE_PORT, topic="commanded_ruka_state"
+            )
+
         # Create the storage directory
         self.storage_path = Path(storage_path) / f"demonstration_{demo_num}"
         self.storage_path.mkdir(parents=True, exist_ok=True)
@@ -97,6 +107,9 @@ class DataCollector:
 
         if collect_reskin:
             self.threads.append(threading.Thread(target=self.save_reskin, daemon=True))
+
+        if collect_ruka:
+            self.threads.append(threading.Thread(target=self.save_ruka_states, daemon=True))
 
     def start(self):
         for thread in self.threads:
@@ -269,3 +282,36 @@ class DataCollector:
                 sensor_information["timestamp"][-1] - sensor_information["timestamp"][0]
             ),
         )
+
+    def save_ruka_states(self):
+        notify_component_start(component_name="Ruka State Collector")
+
+        filename = self.storage_path / "ruka_states.pkl"
+        cmd_filename = self.storage_path / "ruka_commanded_states.pkl"
+        ruka_states = []
+        commanded_ruka_states = []
+
+        print("Starting to record Ruka joint data...")
+
+        while self.run_event.is_set():
+            try:
+                ruka_state = self.ruka_socket.recv_keypoints()
+                commanded_ruka_state = self.ruka_commanded_state_socket.recv_keypoints()
+
+                # optionally include timestamps if your teleop sends them
+                ruka_states.append(ruka_state)
+                commanded_ruka_states.append(commanded_ruka_state)
+            except Exception as e:
+                print("Ruka recv error:", e)
+                continue
+
+        with open(filename, "wb") as f:
+            pickle.dump(ruka_states, f)
+        with open(cmd_filename, "wb") as f:
+            pickle.dump(commanded_ruka_states, f)
+
+        print(f"Saved Ruka states to {filename}")
+        self.ruka_socket.stop()
+        self.ruka_commanded_state_socket.stop()
+
+    
