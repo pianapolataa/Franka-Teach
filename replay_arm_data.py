@@ -31,7 +31,7 @@ class ArmReplayer:
         with open(self.storage_path / "commanded_states.pkl", "rb") as f:
             self.arm_actions = pickle.load(f)
 
-    def replay(self, replay_start):
+    def replay(self):
         """Replay arm actions respecting original timestamps."""
         print("Starting arm replay...")
 
@@ -41,6 +41,7 @@ class ArmReplayer:
 
         # Start from first timestamp
         start_time = self.arm_actions[0]['timestamp']
+        replay_start = time.time()
 
         for entry in self.arm_actions:
             action = entry['state']

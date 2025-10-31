@@ -17,14 +17,18 @@ class HandReplayer:
         # Initialize Ruka hand
         self.hand = Hand(hand_type="right")
         self.curr_pos = self.hand.read_pos()
+        test_pos = self.hand.tensioned_pos
+        move_to_pos(curr_pos=self.curr_pos, des_pos=test_pos, hand=self.hand, traj_len=50)
+        self.curr_pos = self.hand.read_pos()
 
-    def replay(self, replay_start):
+    def replay(self):
         """Replay hand actions respecting original timestamps."""
         if not self.ruka_cmds:
             print("No hand commands to replay.")
             return
 
         start_timestamp = self.ruka_cmds[0]['timestamp']
+        replay_start = time.time()
 
         for i, entry in enumerate(self.ruka_cmds):
             target_pos = entry['state']
