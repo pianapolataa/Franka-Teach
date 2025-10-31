@@ -23,8 +23,6 @@ class ArmReplayer:
         """Replay arm actions sequentially. 'delay' is seconds between frames."""
         print("Starting arm replay...")
         for action in self.arm_actions:
-            print(action)
-            break
             self.action_socket.send(pickle.dumps(action))
             _ = self.action_socket.recv()
             time.sleep(delay)  # fixed delay between frames
