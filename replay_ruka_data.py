@@ -18,14 +18,13 @@ class HandReplayer:
         self.hand = Hand(hand_type="right")
         self.curr_pos = self.hand.read_pos()
 
-    def replay(self):
+    def replay(self, replay_start):
         """Replay hand actions respecting original timestamps."""
         if not self.ruka_cmds:
             print("No hand commands to replay.")
             return
 
         start_timestamp = self.ruka_cmds[0]['timestamp']
-        replay_start = time.time()
 
         for i, entry in enumerate(self.ruka_cmds):
             target_pos = entry['state']
