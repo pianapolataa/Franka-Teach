@@ -216,8 +216,8 @@ class DataCollector:
             # state = pickle.loads(self.state_socket.recv())
             state = self.state_socket.recv_keypoints()
             commanded_state = self.commanded_state_socket.recv_keypoints()
-            states.append(state)
-            commanded_states.append(commanded_state)
+            states.append({'state': state, 'timestamp': time.time()})
+            commanded_states.append({'state': commanded_state, 'timestamp': time.time()})
 
         with open(filename, "wb") as f:
             pickle.dump(states, f)
@@ -298,9 +298,8 @@ class DataCollector:
                 ruka_state = self.ruka_socket.recv_keypoints()
                 commanded_ruka_state = self.ruka_commanded_state_socket.recv_keypoints()
 
-                # optionally include timestamps if your teleop sends them
-                ruka_states.append(ruka_state)
-                commanded_ruka_states.append(commanded_ruka_state)
+                ruka_states.append({'state': ruka_state, 'timestamp': time.time()})
+                commanded_ruka_states.append({'state': commanded_ruka_state, 'timestamp': time.time()})
             except Exception as e:
                 print("Ruka recv error:", e)
                 continue
