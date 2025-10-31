@@ -21,7 +21,8 @@ class ArmReplayer:
                 reset=True,
                 timestamp=time.time(),
             )
-        self.action_socket.send(bytes(pickle.dumps(action, protocol=-1)))
+        self.action_socket.send(bytes(pickle.dumps(action, protocol=-1)))            
+        robot_state = pickle.loads(self.action_socket.recv())
 
 
     def load_data(self):
