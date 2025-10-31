@@ -230,16 +230,16 @@ class DataCollector:
         self.state_socket.stop()
         self.commanded_state_socket.stop()
 
-        print(
-            "Frequency of state savings: ",
-            (len(states) - 10) / (states[-1].timestamp - states[10].timestamp),
-        )
+        # print(
+        #     "Frequency of state savings: ",
+        #     (len(states) - 10) / (states[-1].timestamp - states[10].timestamp),
+        # )
 
-        print(
-            "Frequency of commanded state savings: ",
-            (len(commanded_states) - 10)
-            / (commanded_states[-1].timestamp - commanded_states[10].timestamp),
-        )
+        # print(
+        #     "Frequency of commanded state savings: ",
+        #     (len(commanded_states) - 10)
+        #     / (commanded_states[-1].timestamp - commanded_states[10].timestamp),
+        # )
 
     def save_reskin(self):
         notify_component_start(component_name="Reskin Collector")
