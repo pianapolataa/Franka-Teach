@@ -4,7 +4,7 @@ from ruka_hand.control.hand import Hand
 from ruka_hand.utils.trajectory import move_to_pos
 
 # Paths to recorded files
-folder = "demonstration_0"
+folder = "data/demonstration_0"
 ruka_cmds_path = f"{folder}/ruka_commanded_states.pkl"
 
 # Load commanded states
