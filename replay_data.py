@@ -19,13 +19,13 @@ class ArmReplayer:
         with open(self.storage_path / "commanded_states.pkl", "rb") as f:
             self.arm_actions = pickle.load(f)
 
-    def replay(self, delay=0.02):
+    def replay(self, delay=0.04):
         """Replay arm actions sequentially. 'delay' is seconds between frames."""
         print("Starting arm replay...")
         for action in self.arm_actions:
             self.action_socket.send(pickle.dumps(action))
             _ = self.action_socket.recv()
-            time.sleep(delay)  # fixed delay between frames
+            time.sleep(delay)
 
         print("Replay finished.")
         self.action_socket.close()
