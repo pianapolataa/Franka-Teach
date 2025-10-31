@@ -1,6 +1,7 @@
 import pickle
 import time
 from pathlib import Path
+import numpy as np
 
 from frankateach.messages import FrankaAction
 from frankateach.network import create_request_socket
