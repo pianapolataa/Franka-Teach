@@ -17,7 +17,7 @@ class ArmReplayer:
         action = FrankaAction(
                 pos=np.zeros(3),
                 quat=np.zeros(4),
-                gripper=self.gripper_state,
+                gripper=-1,
                 reset=True,
                 timestamp=time.time(),
             )
