@@ -2,7 +2,7 @@ defaults:
   - _self_
   - camera
 
-storage_path: "path/to/data/extracted_data/task_name"
+storage_path: "data"
 demo_num: 0
 collect_img: False
 collect_depth: False
