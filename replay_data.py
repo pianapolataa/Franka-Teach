@@ -14,36 +14,53 @@ class ArmReplayer:
         self.load_data()
         # Socket to send actions to the Franka server
         self.action_socket = create_request_socket(LOCALHOST, CONTROL_PORT)
-        action = FrankaAction(
-                pos=np.zeros(3),
-                quat=np.zeros(4),
-                gripper=-1,
-                reset=True,
-                timestamp=time.time(),
-            )
-        self.action_socket.send(bytes(pickle.dumps(action, protocol=-1)))            
-        robot_state = pickle.loads(self.action_socket.recv())
 
+        # Reset robot at the start
+        reset_action = FrankaAction(
+            pos=np.zeros(3),
+            quat=np.zeros(4),
+            gripper=-1,
+            reset=True,
+            timestamp=time.time(),
+        )
+        self.action_socket.send(bytes(pickle.dumps(reset_action, protocol=-1)))            
+        _ = pickle.loads(self.action_socket.recv())
 
     def load_data(self):
-        # Load only commanded actions
+        # Load commanded states with timestamps
         with open(self.storage_path / "commanded_states.pkl", "rb") as f:
             self.arm_actions = pickle.load(f)
 
-    def replay(self, delay=0.04):
-        """Replay arm actions sequentially. 'delay' is seconds between frames."""
+    def replay(self):
+        """Replay arm actions respecting original timestamps."""
         print("Starting arm replay...")
-        for action in self.arm_actions:
-            self.action_socket.send(pickle.dumps(action))
+
+        if not self.arm_actions:
+            print("No actions to replay.")
+            return
+
+        # Start from first timestamp
+        start_time = self.arm_actions[0]['timestamp']
+        replay_start = time.time()
+
+        for entry in self.arm_actions:
+            action = entry['state']
+            original_timestamp = entry['timestamp']
+
+            # Calculate how long to wait based on original timing
+            target_time = replay_start + (original_timestamp - start_time)
+            sleep_time = max(0, target_time - time.time())
+            time.sleep(sleep_time)
+
+            # Send action
+            self.action_socket.send(bytes(pickle.dumps(action, protocol=-1)))
             _ = self.action_socket.recv()
-            time.sleep(delay)
 
         print("Replay finished.")
         self.action_socket.close()
 
 
 if __name__ == "__main__":
-    # CHANGE THIS PATH to your demonstration folder
     demo_path = "data/demonstration_0"
 
     replayer = ArmReplayer(demo_path)
