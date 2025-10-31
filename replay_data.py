@@ -13,6 +13,15 @@ class ArmReplayer:
         self.load_data()
         # Socket to send actions to the Franka server
         self.action_socket = create_request_socket(LOCALHOST, CONTROL_PORT)
+        action = FrankaAction(
+                pos=np.zeros(3),
+                quat=np.zeros(4),
+                gripper=self.gripper_state,
+                reset=True,
+                timestamp=time.time(),
+            )
+        self.action_socket.send(bytes(pickle.dumps(action, protocol=-1)))
+
 
     def load_data(self):
         # Load only commanded actions
