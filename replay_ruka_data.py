@@ -17,8 +17,10 @@ class HandReplayer:
         # Initialize Ruka hand
         self.hand = Hand(hand_type="right")
         self.curr_pos = self.hand.read_pos()
+        time.sleep(0.5)
         test_pos = self.hand.tensioned_pos
         move_to_pos(curr_pos=self.curr_pos, des_pos=test_pos, hand=self.hand, traj_len=50)
+        time.sleep(1)
         self.curr_pos = self.hand.read_pos()
 
     def replay(self):
