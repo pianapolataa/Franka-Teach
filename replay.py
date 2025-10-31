@@ -1,27 +1,16 @@
 import threading
-import time
-import subprocess
+from replay_arm_data import ArmReplayer
+from replay_ruka_data import HandReplayer
 
-def replay_arm():
-    subprocess.run(["python", "replay_arm_data.py"])
+arm = ArmReplayer("data/demonstration_0")
+hand = HandReplayer("data/demonstration_0") 
 
-def replay_ruka():
-    subprocess.run(["python", "replay_ruka_data.py"])
+arm_thread = threading.Thread(target=arm.replay, daemon=True)
+hand_thread = threading.Thread(target=hand.replay, daemon=True)
 
-def main():
-    # Create threads
-    arm_thread = threading.Thread(target=replay_arm)
-    ruka_thread = threading.Thread(target=replay_ruka)
+arm_thread.start()
+hand_thread.start()
 
-    # Start threads
-    arm_thread.start()
-    ruka_thread.start()
-
-    # Wait for both threads to finish
-    arm_thread.join()
-    ruka_thread.join()
-
-    print("Synchronized replay finished.")
-
-if __name__ == "__main__":
-    main()
+arm_thread.join()
+hand_thread.join()
+print("Both replays finished.")
