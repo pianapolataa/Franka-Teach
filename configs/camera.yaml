@@ -2,7 +2,7 @@ cam_info:
   -
     cam_id: 1
     type: ip
-    url: "rtsp://192.168.0.23:8554/live"   # phone ip
+    url: "http://10.21.19.75:4747/video"   # phone ip
     name: iphone_cam
 
 cam_config:
