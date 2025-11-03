@@ -43,9 +43,11 @@ class DataCollector:
         self.depth_subscribers = {}
         if collect_img:
             for camera in cams:
-                self.image_subscribers[camera.cam_id] = ZMQCameraSubscriber(
-                    LOCALHOST, CAM_PORT + camera.cam_id, "RGB"
-                )
+                print(f"Connecting to IP camera at {camera.url}")
+                cap = cv2.VideoCapture(camera.url)
+                if not cap.isOpened():
+                    raise RuntimeError(f"Cannot open IP camera stream: {camera.url}")
+                self.image_subscribers[camera.cam_id] = cap
 
         if collect_depth:
             for camera in cams:
@@ -139,9 +141,9 @@ class DataCollector:
         timestamps = []
         metadata = dict(
             cam_idx=cam_idx,
-            width=cam_config.width,
-            height=cam_config.height,
-            fps=cam_config.fps,
+            width=cam_config["width"],
+            height=cam_config["height"],
+            fps=cam_config["fps"],
             filename=filename,
             record_start_time=time.time(),
         )
@@ -149,7 +151,16 @@ class DataCollector:
         try:
             # Loop to capture frames until stopped
             while self.run_event.is_set():
-                rgb_image, timestamp = self.image_subscribers[cam_idx].recv_rgb_image()
+                sub = self.image_subscribers[cam_idx]
+                if isinstance(sub, cv2.VideoCapture):
+                    ret, rgb_image = sub.read()
+                    if not ret:
+                        time.sleep(0.01)
+                        continue
+                    timestamp = time.time()
+                else:
+                    rgb_image, timestamp = sub.recv_rgb_image()
+
                 recorder.write(rgb_image)
                 timestamps.append(timestamp)
         finally:
@@ -160,7 +171,7 @@ class DataCollector:
             metadata["timestamps"] = timestamps
             with open(metadata_filename, "wb") as f:
                 pickle.dump(metadata, f)
-            self.image_subscribers[cam_idx].stop()
+            self.image_subscribers[cam_idx].release()
             print(f"Saved video to {filename}")
 
     # def save_depth(self, cam_idx, cam_config):

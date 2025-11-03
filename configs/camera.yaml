@@ -1,21 +1,12 @@
 cam_info:
   -
     cam_id: 1
-    cam_serial_num: "147322072736"
-    type: realsense
-  -
-    cam_id: 2
-    cam_serial_num: "028522071213"
-    type: realsense
+    type: ip
+    url: "rtsp://192.168.0.23:8554/live"   # phone ip
+    name: iphone_cam
 
 cam_config:
-  realsense:
-    width: 640
-    height: 480
-    fps: 30
-    processing_preset: 1
-    depth: True
-  fisheye:
-    width: 640
-    height: 480
+  ip:
+    width: 1280
+    height: 720
     fps: 30
