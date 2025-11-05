@@ -302,7 +302,8 @@ class FrankaArmOperator:
             rotated_frame = self._rotate_frame(np.pi, wrist_state)
             self.hand_init_H = self._turn_frame_to_homo_mat(rotated_frame)
             offset_frame = self._rotate_frame(np.pi * 3 / 2, wrist_state)
-            self.hand_init_offset_H = self._turn_frame_to_homo_mat(offset_frame)
+            # self.hand_init_offset_H = self._turn_frame_to_homo_mat(offset_frame)
+            self.hand_init_offset_H = self._turn_frame_to_homo_mat(wrist_state)
 
             print("Resetting robot..")
             action = FrankaAction(
@@ -353,7 +354,8 @@ class FrankaArmOperator:
             rotated_frame = self._rotate_frame(np.pi, moving_wrist)
             self.hand_moving_H = self._turn_frame_to_homo_mat(rotated_frame)
             offset_frame = self._rotate_frame(3 * np.pi / 2, moving_wrist)
-            self.hand_moving_offset_H = self._turn_frame_to_homo_mat(offset_frame)
+            # self.hand_moving_offset_H = self._turn_frame_to_homo_mat(offset_frame)
+            self.hand_moving_offset_H = self._turn_frame_to_homo_mat(moving_wrist)
 
             # Transformation code
             # all 4x4 matrix
