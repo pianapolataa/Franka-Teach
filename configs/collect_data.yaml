@@ -3,7 +3,7 @@ defaults:
   - camera
 
 storage_path: "data"
-demo_num: 0
+demo_num: 1
 collect_img: False
 collect_depth: False
 collect_state: True
