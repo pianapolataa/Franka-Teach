@@ -4,11 +4,11 @@ from replay_arm_data import ArmReplayer
 from replay_ruka_data import HandReplayer
 
 def run_arm():
-    arm = ArmReplayer("data/demonstration_0")
+    arm = ArmReplayer("data/demonstration_1")
     arm.replay()
 
 def run_hand():
-    hand = HandReplayer("data/demonstration_0")
+    hand = HandReplayer("data/demonstration_1")
     hand.replay()
 
 arm_thread = threading.Thread(target=run_arm, daemon=True)
