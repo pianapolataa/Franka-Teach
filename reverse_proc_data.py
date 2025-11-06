@@ -7,7 +7,11 @@ from pathlib import Path
 
 from frankateach.messages import FrankaAction
 
-def convert_processed_to_replay(processed_pkl_path, replay_folder, arm_hz=30, hand_hz=60):
+def convert_processed_to_replay(processed_pkl_path, replay_folder, arm_hz=30, hand_hz=60, time_scale=3.0):
+    """
+    Convert processed BAKU-style data into replayable pkl files.
+    time_scale > 1 makes the replay slower (e.g. 3.0 = 3× slower).
+    """
     os.makedirs(replay_folder, exist_ok=True)
 
     with open(processed_pkl_path, "rb") as f:
@@ -16,10 +20,10 @@ def convert_processed_to_replay(processed_pkl_path, replay_folder, arm_hz=30, ha
     obs = data["observations"]
     print(f"Loaded processed data with {len(obs)} frames")
 
-    # Synthetic timestamps based on assumed frequency
+    # Synthetic timestamps (scaled slower)
     start_time = time.time()
-    arm_dt = 1.0 / arm_hz
-    hand_dt = 1.0 / hand_hz
+    arm_dt = time_scale * (1.0 / arm_hz)
+    hand_dt = time_scale * (1.0 / hand_hz)
 
     # Arm replay data
     arm_entries = []
@@ -48,7 +52,6 @@ def convert_processed_to_replay(processed_pkl_path, replay_folder, arm_hz=30, ha
     # Hand replay data
     hand_entries = []
     for i, o in enumerate(tqdm(obs, desc="Preparing hand data")):
-        # Hand state (shape should match ruka format, 16 or so joints)
         state = np.array(o["gripper_states"], dtype=np.float32)
         t = start_time + i * hand_dt
         hand_entries.append({
@@ -64,4 +67,6 @@ def convert_processed_to_replay(processed_pkl_path, replay_folder, arm_hz=30, ha
 if __name__ == "__main__":
     processed_pkl_path = "processed_data_pkl/demo_task.pkl"
     replay_folder = "replay_ready/demo_task"
-    convert_processed_to_replay(processed_pkl_path, replay_folder)
+
+    # You can tweak time_scale if it's still too fast or too slow
+    convert_processed_to_replay(processed_pkl_path, replay_folder, time_scale=3.0)
