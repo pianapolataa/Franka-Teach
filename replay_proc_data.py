@@ -1,74 +1,67 @@
 import os
 import pickle
-import threading
 import time
+import numpy as np
+from tqdm import tqdm
 from pathlib import Path
 
-# Use your existing replayers
-from replay_arm_data import ArmReplayer
-from replay_ruka_data import HandReplayer
+from frankateach.messages import FrankaAction
 
+def convert_processed_to_replay(processed_pkl_path, replay_folder, arm_hz=30, hand_hz=60):
+    os.makedirs(replay_folder, exist_ok=True)
 
-def save_for_replay(processed_pkl_path, replay_folder, hz=30.0):
-    """
-    Convert processed BAKU-format .pkl into replayable format for ArmReplayer/HandReplayer.
-    Synthesizes timestamps assuming 'hz' sampling rate.
-    """
     with open(processed_pkl_path, "rb") as f:
         data = pickle.load(f)
 
-    observations = data["observations"]
-    os.makedirs(replay_folder, exist_ok=True)
+    obs = data["observations"]
+    print(f"Loaded processed data with {len(obs)} frames")
 
-    # Build synthetic timestamps (e.g. 30Hz)
-    timestamps = [i / hz for i in range(len(observations))]
+    # Synthetic timestamps based on assumed frequency
+    start_time = time.time()
+    arm_dt = 1.0 / arm_hz
+    hand_dt = 1.0 / hand_hz
 
-    # Arm commanded poses
-    arm_data = [
-        {"timestamp": t, "state": obs["commanded_cartesian_states"]}
-        for t, obs in zip(timestamps, observations)
-    ]
+    # Arm replay data
+    arm_entries = []
+    for i, o in enumerate(tqdm(obs, desc="Preparing arm data")):
+        cmd = o["commanded_cartesian_states"]  # 7D: [x,y,z,qx,qy,qz,qw]
+        pos = np.array(cmd[:3], dtype=np.float32)
+        quat = np.array(cmd[3:7], dtype=np.float32)
+
+        action = FrankaAction(
+            pos=pos,
+            quat=quat,
+            gripper=-1,
+            reset=False,
+            timestamp=start_time + i * arm_dt,
+        )
+
+        arm_entries.append({
+            "timestamp": action.timestamp,
+            "state": action
+        })
+
     with open(Path(replay_folder) / "commanded_states.pkl", "wb") as f:
-        pickle.dump(arm_data, f)
-    print(f"✅ Saved arm replay file with {len(arm_data)} frames.")
+        pickle.dump(arm_entries, f)
+    print(f"Saved arm replay data → {replay_folder}/commanded_states.pkl")
 
-    # Hand commanded states
-    hand_data = [
-        {"timestamp": t, "state": obs["commanded_gripper_states"]}
-        for t, obs in zip(timestamps, observations)
-    ]
+    # Hand replay data
+    hand_entries = []
+    for i, o in enumerate(tqdm(obs, desc="Preparing hand data")):
+        # Hand state (shape should match ruka format, 16 or so joints)
+        state = np.array(o["gripper_states"], dtype=np.float32)
+        t = start_time + i * hand_dt
+        hand_entries.append({
+            "timestamp": t,
+            "state": state
+        })
+
     with open(Path(replay_folder) / "ruka_commanded_states.pkl", "wb") as f:
-        pickle.dump(hand_data, f)
-    print(f"✅ Saved hand replay file with {len(hand_data)} frames.")
-
-
-def run_arm(folder):
-    arm = ArmReplayer(folder)
-    arm.replay()
-
-
-def run_hand(folder):
-    hand = HandReplayer(folder)
-    hand.replay()
-
-
-def replay_processed_demo(processed_pkl_path, replay_folder="replay_from_processed", hz=30.0):
-    """Prepare replay files and start both replayers in parallel."""
-    save_for_replay(processed_pkl_path, replay_folder, hz=hz)
-
-    print("🚀 Starting both replays...")
-    arm_thread = threading.Thread(target=run_arm, args=(replay_folder,), daemon=True)
-    hand_thread = threading.Thread(target=run_hand, args=(replay_folder,), daemon=True)
-
-    arm_thread.start()
-    hand_thread.start()
-
-    arm_thread.join()
-    hand_thread.join()
-
-    print("✅ Both replays finished successfully.")
+        pickle.dump(hand_entries, f)
+    print(f"Saved hand replay data → {replay_folder}/ruka_commanded_states.pkl")
 
 
 if __name__ == "__main__":
     processed_pkl_path = "processed_data_pkl/demo_task.pkl"
-    replay_processed_demo(processed_pkl_path, hz=30.0)
+    replay_folder = "replay_ready/demo_task"
+    convert_processed_to_replay(processed_pkl_path, replay_folder)
