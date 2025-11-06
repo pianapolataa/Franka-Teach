@@ -10,24 +10,25 @@ from frankateach.messages import FrankaAction
 def convert_processed_to_replay(processed_pkl_path, replay_folder, time_scale=3.0):
     """
     Convert processed BAKU-style data into replayable pkl files.
-    Uses timestamps stored in processed PKL, scaled by `time_scale`.
+    time_scale > 1 makes the replay slower (e.g. 3.0 = 3× slower).
     """
     os.makedirs(replay_folder, exist_ok=True)
 
+    # Load processed PKL
     with open(processed_pkl_path, "rb") as f:
         data = pickle.load(f)
 
     obs = data["observations"]
-    timestamps = np.array([o["timestamp"] for o in obs], dtype=np.float64)
+    timestamps = data["timestamps"]  # use the timestamps stored in the PKL
     print(f"Loaded processed data with {len(obs)} frames")
 
     # Scale timestamps for slower replay
     start_time = time.time()
     ts_scaled = start_time + time_scale * (timestamps - timestamps[0])
 
-    # ----------------------------
-    # Arm replay data
-    # ----------------------------
+    # -----------------------------
+    # Prepare arm replay data
+    # -----------------------------
     arm_entries = []
     for i, o in enumerate(tqdm(obs, desc="Preparing arm data")):
         cmd = o["commanded_cartesian_states"]  # 7D: [x,y,z,qx,qy,qz,qw]
@@ -47,13 +48,14 @@ def convert_processed_to_replay(processed_pkl_path, replay_folder, time_scale=3.
             "state": action
         })
 
-    with open(Path(replay_folder) / "commanded_states.pkl", "wb") as f:
+    arm_file = Path(replay_folder) / "commanded_states.pkl"
+    with open(arm_file, "wb") as f:
         pickle.dump(arm_entries, f)
-    print(f"Saved arm replay data → {replay_folder}/commanded_states.pkl")
+    print(f"Saved arm replay data → {arm_file}")
 
-    # ----------------------------
-    # Hand replay data
-    # ----------------------------
+    # -----------------------------
+    # Prepare hand replay data
+    # -----------------------------
     hand_entries = []
     for i, o in enumerate(tqdm(obs, desc="Preparing hand data")):
         state = np.array(o["gripper_states"], dtype=np.float32)
@@ -62,14 +64,15 @@ def convert_processed_to_replay(processed_pkl_path, replay_folder, time_scale=3.
             "state": state
         })
 
-    with open(Path(replay_folder) / "ruka_commanded_states.pkl", "wb") as f:
+    hand_file = Path(replay_folder) / "ruka_commanded_states.pkl"
+    with open(hand_file, "wb") as f:
         pickle.dump(hand_entries, f)
-    print(f"Saved hand replay data → {replay_folder}/ruka_commanded_states.pkl")
+    print(f"Saved hand replay data → {hand_file}")
 
 
 if __name__ == "__main__":
     processed_pkl_path = "processed_data_pkl/demo_task.pkl"
     replay_folder = "replay_ready/demo_task"
 
-    # Adjust time_scale to make replay faster/slower
+    # You can adjust time_scale to make replay faster or slower
     convert_processed_to_replay(processed_pkl_path, replay_folder, time_scale=3.0)
