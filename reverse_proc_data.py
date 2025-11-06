@@ -7,10 +7,11 @@ from pathlib import Path
 
 from frankateach.messages import FrankaAction
 
-def convert_processed_to_replay(processed_pkl_path, replay_folder, arm_hz=30, hand_hz=60, time_scale=3.0):
+def convert_processed_to_replay(processed_pkl_path, replay_folder, time_scale=1.0):
     """
     Convert processed BAKU-style data into replayable pkl files.
-    time_scale > 1 makes the replay slower (e.g. 3.0 = 3× slower).
+    time_scale > 1 makes the replay slower.
+    Uses timestamps from processed data.
     """
     os.makedirs(replay_folder, exist_ok=True)
 
@@ -20,11 +21,6 @@ def convert_processed_to_replay(processed_pkl_path, replay_folder, arm_hz=30, ha
     obs = data["observations"]
     print(f"Loaded processed data with {len(obs)} frames")
 
-    # Synthetic timestamps (scaled slower)
-    start_time = time.time()
-    arm_dt = time_scale * (1.0 / arm_hz)
-    hand_dt = time_scale * (1.0 / hand_hz)
-
     # Arm replay data
     arm_entries = []
     for i, o in enumerate(tqdm(obs, desc="Preparing arm data")):
@@ -32,12 +28,16 @@ def convert_processed_to_replay(processed_pkl_path, replay_folder, arm_hz=30, ha
         pos = np.array(cmd[:3], dtype=np.float32)
         quat = np.array(cmd[3:7], dtype=np.float32)
 
+        # Use processed timestamp, scaled if needed
+        ts = o.get("timestamp", time.time())  # fallback just in case
+        ts = obs[0]["timestamp"] + time_scale * (ts - obs[0]["timestamp"])
+
         action = FrankaAction(
             pos=pos,
             quat=quat,
             gripper=-1,
             reset=False,
-            timestamp=start_time + i * arm_dt,
+            timestamp=ts,
         )
 
         arm_entries.append({
@@ -53,9 +53,10 @@ def convert_processed_to_replay(processed_pkl_path, replay_folder, arm_hz=30, ha
     hand_entries = []
     for i, o in enumerate(tqdm(obs, desc="Preparing hand data")):
         state = np.array(o["gripper_states"], dtype=np.float32)
-        t = start_time + i * hand_dt
+        ts = o.get("timestamp", time.time())
+        ts = obs[0]["timestamp"] + time_scale * (ts - obs[0]["timestamp"])
         hand_entries.append({
-            "timestamp": t,
+            "timestamp": ts,
             "state": state
         })
 
@@ -68,5 +69,5 @@ if __name__ == "__main__":
     processed_pkl_path = "processed_data_pkl/demo_task.pkl"
     replay_folder = "replay_ready/demo_task"
 
-    # You can tweak time_scale if it's still too fast or too slow
+    # time_scale >1 slows down replay
     convert_processed_to_replay(processed_pkl_path, replay_folder, time_scale=3.0)
