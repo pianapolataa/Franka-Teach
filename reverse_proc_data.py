@@ -5,13 +5,15 @@ import time
 import numpy as np
 from tqdm import tqdm
 from pathlib import Path
+from scipy.spatial.transform import Rotation as R, Slerp
 
 from frankateach.messages import FrankaAction
 
-def convert_processed_to_replay(processed_pkl_path, replay_folder, time_scale=1.0):
+def convert_processed_to_replay(processed_pkl_path, replay_folder, time_scale=1.0, interp_frames=5):
     """
     Convert processed BAKU-style data into replayable PKLs using timestamps from the processed file.
-    time_scale > 1 makes the replay slower (e.g. 3.0 = 3× slower).
+    Interpolates ARM states/commands with `interp_frames` frames between every two frames.
+    time_scale > 1 makes the replay slower.
     """
     os.makedirs(replay_folder, exist_ok=True)
 
@@ -23,44 +25,76 @@ def convert_processed_to_replay(processed_pkl_path, replay_folder, time_scale=1.
     timestamps = np.array(data["timestamps"], dtype=np.float64)
     print(f"Loaded processed data with {len(obs)} frames")
 
-    # Scale timestamps
-    start_time = time.time()
-    ts_scaled = start_time + time_scale * (timestamps - timestamps[0])
-
     # ----------------------------
-    # Arm replay data
+    # Interpolate ARM states and commands
     # ----------------------------
     arm_entries = []
-    for i, o in enumerate(tqdm(obs, desc="Preparing arm data")):
-        cmd = o["commanded_cartesian_states"]  # 7D: [x, y, z, qx, qy, qz, qw]
-        pos = np.array(cmd[:3], dtype=np.float32)
-        quat = np.array(cmd[3:7], dtype=np.float32)
+    for i in tqdm(range(len(obs)-1), desc="Preparing interpolated arm data"):
+        o1 = obs[i]
+        o2 = obs[i+1]
+        t1 = timestamps[i]
+        t2 = timestamps[i+1]
 
-        action = FrankaAction(
-            pos=pos,
-            quat=quat,
+        # Original frame
+        action1 = FrankaAction(
+            pos=o1["commanded_cartesian_states"][:3],
+            quat=o1["commanded_cartesian_states"][3:],
             gripper=-1,
             reset=False,
-            timestamp=ts_scaled[i],
+            timestamp=t1
         )
+        arm_entries.append({"timestamp": t1, "state": action1})
 
-        arm_entries.append({
-            "timestamp": action.timestamp,
-            "state": action
-        })
+        # Interpolated frames
+        pos1, quat1 = np.array(o1["commanded_cartesian_states"][:3], dtype=np.float32), np.array(o1["commanded_cartesian_states"][3:], dtype=np.float32)
+        pos2, quat2 = np.array(o2["commanded_cartesian_states"][:3], dtype=np.float32), np.array(o2["commanded_cartesian_states"][3:], dtype=np.float32)
+
+        r = R.from_quat([quat1, quat2])
+        slerp = Slerp([0, 1], r)
+
+        for j in range(1, interp_frames+1):
+            alpha = j / (interp_frames + 1)  # fraction along the interval
+            interp_pos = (1 - alpha) * pos1 + alpha * pos2
+            interp_quat = slerp(alpha).as_quat()
+            interp_time = t1 + alpha * (t2 - t1)
+
+            action_interp = FrankaAction(
+                pos=interp_pos,
+                quat=interp_quat,
+                gripper=-1,
+                reset=False,
+                timestamp=interp_time
+            )
+            arm_entries.append({"timestamp": interp_time, "state": action_interp})
+
+    # Append last original frame
+    last = obs[-1]
+    action_last = FrankaAction(
+        pos=last["commanded_cartesian_states"][:3],
+        quat=last["commanded_cartesian_states"][3:],
+        gripper=-1,
+        reset=False,
+        timestamp=timestamps[-1]
+    )
+    arm_entries.append({"timestamp": timestamps[-1], "state": action_last})
+
+    # Scale timestamps
+    start_time = time.time()
+    for entry in arm_entries:
+        entry["timestamp"] = start_time + time_scale * (entry["timestamp"] - timestamps[0])
 
     with open(Path(replay_folder) / "commanded_states.pkl", "wb") as f:
         pickle.dump(arm_entries, f)
     print(f"Saved arm replay data → {replay_folder}/commanded_states.pkl")
 
     # ----------------------------
-    # Hand replay data
+    # Hand replay data (unchanged)
     # ----------------------------
     hand_entries = []
     for i, o in enumerate(tqdm(obs, desc="Preparing hand data")):
         state = np.array(o["gripper_states"], dtype=np.float32)
         hand_entries.append({
-            "timestamp": ts_scaled[i],
+            "timestamp": start_time + time_scale * (timestamps[i] - timestamps[0]),
             "state": state
         })
 
@@ -74,4 +108,4 @@ if __name__ == "__main__":
     replay_folder = "replay_ready/demo_task"
 
     # Adjust time_scale for slower/faster replay
-    convert_processed_to_replay(processed_pkl_path, replay_folder, time_scale=3.0)
+    convert_processed_to_replay(processed_pkl_path, replay_folder, time_scale=3.0, interp_frames=5)
