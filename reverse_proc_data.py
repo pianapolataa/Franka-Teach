@@ -104,7 +104,7 @@ def convert_processed_to_replay(processed_pkl_path, replay_folder, time_scale=1.
 
 
 if __name__ == "__main__":
-    processed_pkl_path = "processed_data_pkl/demo_task.pkl"
+    processed_pkl_path = "processed_data_1_pkl/demo_task.pkl"
     replay_folder = "replay_ready/demo_task"
 
     # Adjust time_scale for slower/faster replay
