@@ -8,7 +8,7 @@ from pathlib import Path
 
 from frankateach.messages import FrankaAction
 
-def convert_processed_to_replay(processed_pkl_path, replay_folder, time_scale=3.0):
+def convert_processed_to_replay(processed_pkl_path, replay_folder, time_scale=1.0):
     """
     Convert processed BAKU-style data into replayable PKLs using timestamps from the processed file.
     time_scale > 1 makes the replay slower (e.g. 3.0 = 3× slower).
