@@ -37,8 +37,8 @@ def convert_processed_to_replay(processed_pkl_path, replay_folder, time_scale=1.
 
         # Original frame
         action1 = FrankaAction(
-            pos=o1["commanded_cartesian_states"][:3],
-            quat=o1["commanded_cartesian_states"][3:],
+            pos=o1["commanded_arm_states"][:3],
+            quat=o1["commanded_arm_states"][3:],
             gripper=-1,
             reset=False,
             timestamp=t1
@@ -46,8 +46,8 @@ def convert_processed_to_replay(processed_pkl_path, replay_folder, time_scale=1.
         arm_entries.append({"timestamp": t1, "state": action1})
 
         # Interpolated frames
-        pos1, quat1 = np.array(o1["commanded_cartesian_states"][:3], dtype=np.float32), np.array(o1["commanded_cartesian_states"][3:], dtype=np.float32)
-        pos2, quat2 = np.array(o2["commanded_cartesian_states"][:3], dtype=np.float32), np.array(o2["commanded_cartesian_states"][3:], dtype=np.float32)
+        pos1, quat1 = np.array(o1["commanded_arm_states"][:3], dtype=np.float32), np.array(o1["commanded_arm_states"][3:], dtype=np.float32)
+        pos2, quat2 = np.array(o2["commanded_arm_states"][:3], dtype=np.float32), np.array(o2["commanded_arm_states"][3:], dtype=np.float32)
 
         r = R.from_quat([quat1, quat2])
         slerp = Slerp([0, 1], r)
@@ -70,8 +70,8 @@ def convert_processed_to_replay(processed_pkl_path, replay_folder, time_scale=1.
     # Append last original frame
     last = obs[-1]
     action_last = FrankaAction(
-        pos=last["commanded_cartesian_states"][:3],
-        quat=last["commanded_cartesian_states"][3:],
+        pos=last["commanded_arm_states"][:3],
+        quat=last["commanded_arm_states"][3:],
         gripper=-1,
         reset=False,
         timestamp=timestamps[-1]
@@ -92,7 +92,7 @@ def convert_processed_to_replay(processed_pkl_path, replay_folder, time_scale=1.
     # ----------------------------
     hand_entries = []
     for i, o in enumerate(tqdm(obs, desc="Preparing hand data")):
-        state = np.array(o["gripper_states"], dtype=np.float32)
+        state = np.array(o["commanded_ruka_states"], dtype=np.float32)
         hand_entries.append({
             "timestamp": start_time + time_scale * (timestamps[i] - timestamps[0]),
             "state": state
