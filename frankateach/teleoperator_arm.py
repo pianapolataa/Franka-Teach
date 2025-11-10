@@ -240,7 +240,7 @@ class FrankaArmOperator:
         Rebuild rotation matrix from angles about wrist x,y,z axes
         """
         angles_deg = np.asarray(angles_deg).reshape(3,)
-        hand_axes_mat = np.asarray(hand_axes_mat).reshape(3, 3)
+        # hand_axes_mat = np.asarray(hand_axes_mat).reshape(3, 3)
         hand_axes_mat = R.from_matrix(hand_axes_mat).as_matrix()
         Q, _ = np.linalg.qr(hand_axes_mat)
         if np.linalg.det(Q) < 0:
