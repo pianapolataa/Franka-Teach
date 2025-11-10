@@ -260,14 +260,13 @@ class FrankaArmOperator:
         z_axis = wrist_state[3]
         rot = R.from_rotvec(angle_rad * y_axis / np.linalg.norm(y_axis)).as_matrix()
         x_rot = rot @ x_axis
+        x_rot /= np.linalg.norm(x_rot)
         y_rot = rot @ y_axis
-        z_rot = rot @ z_axis
-        rotated_frame = [origin, x_rot, y_rot, z_rot]
+        y_rot /= np.linalg.norm(y_rot)
+        rotated_frame = [origin, x_rot, y_rot, np.cross(x_rot, y_rot)]
+        z_rot = np.cross(x_rot, y_rot)
+        z_rot /= np.linalg.norm(z_rot)
 
-        Rmat = np.stack([x_rot, y_rot, z_rot], axis=1)
-        # if np.linalg.det(Rmat) < 0:
-        #     # Fix left-handed frame by flipping one axis
-        #     x_rot = -x_rot
         rotated_frame = [origin, x_rot, y_rot, z_rot]
         return rotated_frame
 
