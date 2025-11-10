@@ -267,7 +267,7 @@ class FrankaArmOperator:
         z_rot /= np.linalg.norm(z_rot)
 
         rotated_frame = [origin, x_rot, y_rot, z_rot]
-        print(np.linalg.det([x_rot, y_rot, z_rot]))
+        print(np.linalg.det([x_axis, y_axis, z_axis]))
         return rotated_frame
 
     def _apply_retargeted_angles(self) -> None:
