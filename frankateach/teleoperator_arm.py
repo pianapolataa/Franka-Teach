@@ -265,9 +265,9 @@ class FrankaArmOperator:
         rotated_frame = [origin, x_rot, y_rot, z_rot]
 
         Rmat = np.stack([x_rot, y_rot, z_rot], axis=1)
-        if np.linalg.det(Rmat) < 0:
-            # Fix left-handed frame by flipping one axis
-            x_rot = -x_rot
+        # if np.linalg.det(Rmat) < 0:
+        #     # Fix left-handed frame by flipping one axis
+        #     x_rot = -x_rot
         rotated_frame = [origin, x_rot, y_rot, z_rot]
         return rotated_frame
 
