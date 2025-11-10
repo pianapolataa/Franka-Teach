@@ -300,7 +300,7 @@ class FrankaArmOperator:
                 return None
             
             rotated_frame = self._rotate_frame(np.pi, wrist_state)
-            print(np.linalg.det(rotated_frame[1], rotated_frame[2], rotated_frame[3]))
+            print(np.linalg.det(rotated_frame[1:]))
             self.hand_init_H = self._turn_frame_to_homo_mat(rotated_frame)
             offset_frame = self._rotate_frame(np.pi * 3 / 2, wrist_state)
             self.hand_init_offset_H = self._turn_frame_to_homo_mat(offset_frame)
@@ -353,7 +353,7 @@ class FrankaArmOperator:
                 moving_wrist = self._get_hand_frame()
             
             rotated_frame = self._rotate_frame(np.pi, moving_wrist)
-            print(np.linalg.det(rotated_frame[1], rotated_frame[2], rotated_frame[3]))
+            print(np.linalg.det(rotated_frame[1:]))
             self.hand_moving_H = self._turn_frame_to_homo_mat(rotated_frame)
             offset_frame = self._rotate_frame(3 * np.pi / 2, moving_wrist)
             self.hand_moving_offset_H = self._turn_frame_to_homo_mat(offset_frame)
