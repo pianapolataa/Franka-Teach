@@ -264,7 +264,7 @@ class FrankaArmOperator:
         y_rot = rot @ y_axis
         y_rot /= np.linalg.norm(y_rot)
         rotated_frame = [origin, x_rot, y_rot, np.cross(x_rot, y_rot)]
-        z_rot = np.cross(x_rot, y_rot)
+        z_rot = np.cross(y_rot, x_rot)
         z_rot /= np.linalg.norm(z_rot)
 
         rotated_frame = [origin, x_rot, y_rot, z_rot]
