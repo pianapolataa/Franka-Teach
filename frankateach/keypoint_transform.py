@@ -62,7 +62,7 @@ class TransformHandPositionCoords():
     # Create a coordinate frame for the arm 
     def _get_hand_dir_frame(self, origin_coord, index_knuckle_coord, pinky_knuckle_coord):
 
-        palm_normal = normalize_vector(np.cross(pinky_knuckle_coord, index_knuckle_coord))   # Unity space - Y
+        palm_normal = normalize_vector(np.cross(index_knuckle_coord, pinky_knuckle_coord))   # Unity space - Y
         palm_direction = normalize_vector(index_knuckle_coord + pinky_knuckle_coord)         # Unity space - Z
         cross_product = normalize_vector(index_knuckle_coord - pinky_knuckle_coord)              # Unity space - X
         
