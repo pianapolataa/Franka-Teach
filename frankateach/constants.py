@@ -53,7 +53,7 @@ OCULUS_VIEW_LIMITS = {
 GRIPPER_OPEN = -1
 GRIPPER_CLOSE = 1
 # translation matrix
-H_R_U_star = np.array([[1, 0, 0, 0], 
+H_R_U_star = np.array([[-1, 0, 0, 0], 
                        [0, 0, 1, 0], 
                        [0, 1, 0, 0], 
                        [0, 0, 0, 1]]) # for mirror flipping
