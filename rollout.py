@@ -192,7 +192,7 @@ class AgentRollout:
 import hydra
 from omegaconf import DictConfig
 
-@hydra.main(config_path="cfgs", config_name="config")
+@hydra.main(config_path="/home_shared/grail_sissi/BAKU/baku/cfgs", config_name="config")
 def main(cfg: DictConfig):
     demo_data_path = "/home_shared/grail_sissi/BAKU/processed_data_pkl/demo_task.pkl"
     snapshot_path = "/home_shared/grail_sissi/BAKU/baku/exp_local/2025.11.12_train/deterministic/142203/snapshot/9000.pt"
