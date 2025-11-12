@@ -192,10 +192,10 @@ class AgentRollout:
 import hydra
 from omegaconf import DictConfig
 
-@hydra.main(config_path="BAKU/baku/cfgs", config_name="config")
+@hydra.main(config_path="/home_shared/grail_sissi/vr-hand-tracking/Franka-Teach/BAKU/baku/cfgs", config_name="config")
 def main(cfg: DictConfig):
-    demo_data_path = "BAKU/processed_data_pkl/demo_task.pkl"
-    snapshot_path = "BAKU/baku/exp_local/2025.11.12_train/deterministic/142203/snapshot/9000.pt"
+    demo_data_path = "/home_shared/grail_sissi/vr-hand-tracking/Franka-Teach/BAKU/processed_data_pkl/demo_task.pkl"
+    snapshot_path = "/home_shared/grail_sissi/vr-hand-tracking/Franka-Teach/BAKU/baku/exp_local/2025.11.12_train/deterministic/142203/snapshot/9000.pt"
 
     rollout = AgentRollout(cfg, demo_data_path, snapshot_path, save_log=True)
     rollout.run(duration_s=180, freq=50)  # run for 3 minutes at 50 Hz
