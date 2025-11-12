@@ -19,10 +19,6 @@ def run_hand():
 arm_thread = threading.Thread(target=run_arm, daemon=True)
 hand_thread = threading.Thread(target=run_hand, daemon=True)
 
-# === Optional: short sync delay or countdown ===
-print("Starting in 3 seconds...")
-time.sleep(3)
-
 # === Start both simultaneously ===
 arm_thread.start()
 hand_thread.start()
