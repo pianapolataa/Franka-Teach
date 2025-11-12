@@ -49,6 +49,9 @@ def convert_processed_to_replay(processed_pkl_path, replay_folder, time_scale=1.
         pos1, quat1 = np.array(o1["commanded_arm_states"][:3], dtype=np.float32), np.array(o1["commanded_arm_states"][3:], dtype=np.float32)
         pos2, quat2 = np.array(o2["commanded_arm_states"][:3], dtype=np.float32), np.array(o2["commanded_arm_states"][3:], dtype=np.float32)
 
+        print(pos1)
+        print(quat1)
+        break
         r = R.from_quat([quat1, quat2])
         slerp = Slerp([0, 1], r)
 
