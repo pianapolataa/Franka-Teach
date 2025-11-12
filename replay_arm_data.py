@@ -52,6 +52,8 @@ class ArmReplayer:
             sleep_time = max(0, target_time - time.time())
             time.sleep(sleep_time)
 
+            print(action.pos)
+            print(action.quat)
             # Send action
             self.action_socket.send(bytes(pickle.dumps(action, protocol=-1)))
             _ = self.action_socket.recv()
