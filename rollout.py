@@ -194,6 +194,9 @@ from omegaconf import DictConfig
 
 @hydra.main(config_path="/home_shared/grail_sissi/BAKU/baku/cfgs", config_name="config")
 def main(cfg: DictConfig):
+    import sys
+    sys.path.append("/home_shared/grail_sissi/BAKU/baku")
+    sys.path.append("/home_shared/grail_sissi/BAKU")
     demo_data_path = "/home_shared/grail_sissi/BAKU/processed_data_pkl/demo_task.pkl"
     snapshot_path = "/home_shared/grail_sissi/BAKU/baku/exp_local/2025.11.12_train/deterministic/142203/snapshot/9000.pt"
 
