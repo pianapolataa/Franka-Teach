@@ -9,7 +9,7 @@ import sys
 import os
 
 # Add paths manually
-sys.path.append(os.path.expanduser("/home_shared/grail_sissi/vr-hand-tracking/Franka-Teach/BAKU/baku"))
+sys.path.append(os.path.expanduser("/home_shared/grail_sissi/vr-hand-tracking/Franka-Teach/BAKU"))
 
 # --- Franka imports ---
 from frankateach.messages import FrankaAction
