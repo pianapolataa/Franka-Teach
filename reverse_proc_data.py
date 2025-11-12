@@ -51,7 +51,6 @@ def convert_processed_to_replay(processed_pkl_path, replay_folder, time_scale=1.
 
         print(pos1)
         print(quat1)
-        break
         r = R.from_quat([quat1, quat2])
         slerp = Slerp([0, 1], r)
 
