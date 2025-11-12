@@ -9,7 +9,7 @@ import sys
 import os
 
 # Add paths manually
-sys.path.append(os.path.expanduser("/home_shared/grail_sissi/BAKU"))
+sys.path.append(os.path.expanduser("/home_shared/grail_sissi/BAKU/baku"))
 
 # --- Franka imports ---
 from frankateach.messages import FrankaAction
@@ -21,8 +21,8 @@ from ruka_hand.control.hand import Hand
 from ruka_hand.utils.trajectory import move_to_pos
 
 # --- Agent imports ---
-from baku.train import WorkspaceIL
-from baku.suite.custom import task_make_fn
+from train import WorkspaceIL
+from suite.custom import task_make_fn
 
 
 class AgentRollout:
