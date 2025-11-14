@@ -4,7 +4,7 @@ defaults:
 
 storage_path: "data"
 demo_num: 1
-collect_img: False
+collect_img: True
 collect_depth: False
 collect_state: True
 collect_reskin: False
