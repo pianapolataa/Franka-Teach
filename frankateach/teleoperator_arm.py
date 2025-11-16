@@ -874,6 +874,7 @@ class FrankaArmOperator:
             reset=False,
             timestamp=time.time(),
         )
+        self.commanded_state_socket.pub_keypoints(action, "commanded_robot_state")
 
         if self.start_teleop: 
             self.action_socket.send(bytes(pickle.dumps(action, protocol=-1)))
@@ -881,7 +882,6 @@ class FrankaArmOperator:
             self.action_socket.send(b"get_state")
     
         robot_state = self.action_socket.recv()
-        self.commanded_state_socket.pub_keypoints(action, "commanded_robot_state")
 
     def stream(self):
         notify_component_start("Franka teleoperator control")

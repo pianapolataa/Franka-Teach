@@ -96,11 +96,8 @@ class RukaOperator:
             hand = Hand(self.hand_type)
             print("hand")
             print(type(hand))
-            curr_pos = hand.read_pos()
             time.sleep(0.5)
-            print(f"curr_pos: {curr_pos}, des_pos: {hand.tensioned_pos}")
-            test_pos = hand.tensioned_pos
-            move_to_pos(curr_pos=curr_pos, des_pos=test_pos, hand=hand, traj_len=50)
+            self.handler.reset()
             self.is_first_frame = False
             time.sleep(1)
            
@@ -108,10 +105,9 @@ class RukaOperator:
         if self.start_teleop:
             motor_positions = self.handler.get_command(transformed_hand_coords)
             curr_pos = self.handler.hand.read_pos()
-            move_to_pos(curr_pos=curr_pos, des_pos=motor_positions, hand=self.handler.hand, traj_len=15)
-            # moved_pos = self.handler.hand.read_pos()
             self.ruka_state_socket.pub_keypoints(curr_pos, "ruka_state")
             self.ruka_commanded_state_socket.pub_keypoints(motor_positions, "commanded_ruka_state")
+            move_to_pos(curr_pos=curr_pos, des_pos=motor_positions, hand=self.handler.hand, traj_len=15)
   
 
     def stream(self):
