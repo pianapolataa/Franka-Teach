@@ -107,7 +107,7 @@ class RukaOperator:
             curr_pos = self.handler.hand.read_pos()
             self.ruka_state_socket.pub_keypoints(curr_pos, "ruka_state")
             self.ruka_commanded_state_socket.pub_keypoints(motor_positions, "commanded_ruka_state")
-            move_to_pos(curr_pos=curr_pos, des_pos=motor_positions, hand=self.handler.hand, traj_len=15)
+            move_to_pos(curr_pos=curr_pos, des_pos=motor_positions, hand=self.handler.hand, traj_len=20)
   
 
     def stream(self):
