@@ -102,6 +102,33 @@ class FrankaArmOperator:
             return ARM_TELEOP_STOP
         return reset_stat
     
+    def _orthonormalize_frame(self, frame):
+        """
+        frame: list of 4 np.array [origin, x_axis, y_axis, z_axis]
+        Returns a corrected, orthonormal frame.
+        """
+        origin = frame[0]
+        x = frame[1]
+        y = frame[2]
+        z = frame[3]
+
+        # Rebuild axes using cross products to ensure orthonormality
+        x = x / np.linalg.norm(x)
+        z = np.cross(x, y)
+        z = z / np.linalg.norm(z)
+        y = np.cross(z, x)
+        y = y / np.linalg.norm(y)
+
+        R_mat = np.stack([x, y, z], axis=1)
+        if np.linalg.det(R_mat) > 0:  # currently right-handed
+            R_mat[:, -1] *= -1        # flip last axis to make it left-handed
+
+        # Debug prints
+        print("[DBG] Orthonormalized frame det:", np.linalg.det(R_mat),
+            "orth_err:", np.linalg.norm(R_mat.T @ R_mat - np.eye(3)))
+
+        return [origin, R_mat[:, 0], R_mat[:, 1], R_mat[:, 2]]
+        
     def _turn_frame_to_homo_mat(self, frame):
         t = frame[0]
         R = frame[1:]
@@ -312,9 +339,10 @@ class FrankaArmOperator:
                 return None
             
             rotated_frame = self._rotate_frame(np.pi, wrist_state)
-            print(np.linalg.det(wrist_state[1:]))
+            rotated_frame = self._orthonormalize_frame(rotated_frame)
             self.hand_init_H = self._turn_frame_to_homo_mat(rotated_frame)
             offset_frame = self._rotate_frame(np.pi * 3 / 2, wrist_state)
+            offset_frame = self._orthonormalize_frame(offset_frame)
             self.hand_init_offset_H = self._turn_frame_to_homo_mat(offset_frame)
             # self.hand_init_offset_H = self._turn_frame_to_homo_mat(wrist_state)
 
@@ -372,9 +400,10 @@ class FrankaArmOperator:
             self.state_socket.pub_keypoints(robot_state_before_action, "robot_state")
             
             rotated_frame = self._rotate_frame(np.pi, moving_wrist)
-            print(np.linalg.det(moving_wrist[1:]))
+            rotated_frame = self._orthonormalize_frame(rotated_frame)
             self.hand_moving_H = self._turn_frame_to_homo_mat(rotated_frame)
             offset_frame = self._rotate_frame(3 * np.pi / 2, moving_wrist)
+            offset_frame = self._orthonormalize_frame(offset_frame)
             self.hand_moving_offset_H = self._turn_frame_to_homo_mat(offset_frame)
             print("[DBG] moving_frame det:", np.linalg.det(self.hand_moving_H[:3,:3]),
                 "eulerXYZ_deg:", R.from_matrix(self.hand_moving_H[:3,:3]).as_euler('XYZ', degrees=True))
