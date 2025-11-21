@@ -129,14 +129,9 @@ class FrankaArmOperator:
     def _homo2cart(self, homo_mat):
         
         t = homo_mat[:3, 3]
-        R = Rotation.from_matrix(
-            homo_mat[:3, :3]).as_quat()
-
-        cart = np.concatenate(
-            [t, R], axis=0
-        )
-        
-        return cart
+        quat_xyzw = Rotation.from_matrix(homo_mat[:3, :3]).as_quat()
+        quat_wxyz = np.array([quat_xyzw[3], quat_xyzw[0], quat_xyzw[1], quat_xyzw[2]])
+        return np.concatenate([t, quat_wxyz])
     
     def _cart2homo(self, cart_pose):
         """
