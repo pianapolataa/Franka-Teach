@@ -275,6 +275,7 @@ class FrankaArmOperator:
         if np.dot(self._last_quat, quat) < 0:
             quat = -quat
 
+        quat = quat / np.linalg.norm(quat)
         self._last_quat = quat.copy()
         return quat
 
@@ -334,6 +335,7 @@ class FrankaArmOperator:
             # Move to offset position
             target_pos = robot_state.pos + self.home_offset
             target_quat = robot_state.quat
+            target_quat = target_quat / np.linalg.norm(target_quat)
             target_quat = self._fix_quat_flip(target_quat)
             action = FrankaAction(
                 pos=target_pos.flatten().astype(np.float32),
@@ -413,6 +415,8 @@ class FrankaArmOperator:
             
             target_pos = self.home_pos + relative_pos
             target_quat = transform_utils.mat2quat(target_rot)
+            target_quat = target_quat / np.linalg.norm(target_quat)
+            target_quat = self._fix_quat_flip(target_quat)
             target_pos = np.clip(
                 target_pos,
                 a_min=ROBOT_WORKSPACE_MIN,
