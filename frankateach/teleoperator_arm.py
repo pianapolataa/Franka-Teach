@@ -206,6 +206,9 @@ class FrankaArmOperator:
         relative_affine = np.block(
             [[relative_affine_rot, relative_affine_trans.reshape(3, 1)], [0, 0, 0, 1]]
         )
+        print("[DBG] to_robot_frame det(rot):", np.linalg.det(relative_affine_rot),
+        "trans:", relative_affine_trans,
+        "rot_eulerXYZ_deg:", R.from_matrix(relative_affine_rot).as_euler('XYZ', degrees=True))
         return relative_affine
 
     def _scale_angle(self, angle, min_angle, max_angle):
@@ -373,6 +376,13 @@ class FrankaArmOperator:
             self.hand_moving_H = self._turn_frame_to_homo_mat(rotated_frame)
             offset_frame = self._rotate_frame(3 * np.pi / 2, moving_wrist)
             self.hand_moving_offset_H = self._turn_frame_to_homo_mat(offset_frame)
+            print("[DBG] moving_frame det:", np.linalg.det(self.hand_moving_H[:3,:3]),
+                "eulerXYZ_deg:", R.from_matrix(self.hand_moving_H[:3,:3]).as_euler('XYZ', degrees=True))
+            print("[DBG] moving_offset_frame det:", np.linalg.det(self.hand_moving_offset_H[:3,:3]),
+                "eulerXYZ_deg:", R.from_matrix(self.hand_moving_offset_H[:3,:3]).as_euler('XYZ', degrees=True))
+            # Orthonormality check
+            print("[DBG] moving_frame orth_err:",
+                np.linalg.norm(self.hand_moving_H[:3,:3].T @ self.hand_moving_H[:3,:3] - np.eye(3)))
             # self.hand_moving_offset_H = self._turn_frame_to_homo_mat(moving_wrist)
 
             # Transformation code
@@ -387,6 +397,13 @@ class FrankaArmOperator:
             relative_affine = self.robot_moving_H
             self.robot_moving_offset_H = self._to_robot_frame(H_HI_HH_offset, H_HT_HH_offset)
             relative_affine_offset = self.robot_moving_offset_H
+
+            print("[DBG] relative_pos_raw:", relative_affine[:3,3],
+                "relative_pos_offset:", relative_affine_offset[:3,3],
+                "diff:", relative_affine_offset[:3,3] - relative_affine[:3,3])
+            print("[DBG] relative_rot_det:", np.linalg.det(relative_affine[:3,:3]))
+            print("[DBG] relative_rot_eulerXYZ_deg:",
+                R.from_matrix(relative_affine[:3,:3]).as_euler('XYZ', degrees=True))
 
             # Use a Filter
             if self.use_filter:
