@@ -455,6 +455,7 @@ class FrankaArmOperator:
             target_rot = self.home_rot @ R_arm_compensation
             
             target_pos = self.home_pos + relative_pos
+            target_pos += np.random.normal(0, 0.0017, size=3)  # small position jitter (1 mm)
             target_quat = transform_utils.mat2quat(target_rot)
             target_quat = target_quat / np.linalg.norm(target_quat)
             target_quat = self._fix_quat_flip(target_quat)
