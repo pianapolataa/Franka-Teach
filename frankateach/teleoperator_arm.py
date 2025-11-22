@@ -333,6 +333,7 @@ class FrankaArmOperator:
             self.resolution_scale = 0.6
             
         if self.is_first_frame:
+            self.cnt = 0
             wrist_state = self._get_hand_frame()
             while  wrist_state is None:
                 wrist_state = self._get_hand_frame()
@@ -393,6 +394,7 @@ class FrankaArmOperator:
             moving_wrist = self._get_hand_frame()
             while (moving_wrist is None):
                 moving_wrist = self._get_hand_frame()
+            self.cnt += 1
             
             self.action_socket.send(b"get_state")
             robot_state_before_action = pickle.loads(self.action_socket.recv())
@@ -455,7 +457,6 @@ class FrankaArmOperator:
             target_rot = self.home_rot @ R_arm_compensation
             
             target_pos = self.home_pos + relative_pos
-            target_pos += np.random.normal(0, 0.0057, size=3)  # small position jitter (1 mm)
             target_quat = transform_utils.mat2quat(target_rot)
             target_quat = target_quat / np.linalg.norm(target_quat)
             target_quat = self._fix_quat_flip(target_quat)
@@ -473,6 +474,14 @@ class FrankaArmOperator:
 
         print("send action")
         
+        expert_action = FrankaAction(
+            pos=target_pos.flatten().astype(np.float32),
+            quat=target_quat.flatten().astype(np.float32),
+            gripper=self.gripper_state,
+            reset=False,
+            timestamp=time.time(),
+        )
+        if (self.cnt % 5 == 0): target_pos += np.random.normal(0, 0.0077, size=3)  # small position jitter (1 mm)
         action = FrankaAction(
             pos=target_pos.flatten().astype(np.float32),
             quat=target_quat.flatten().astype(np.float32),
@@ -480,7 +489,7 @@ class FrankaArmOperator:
             reset=False,
             timestamp=time.time(),
         )
-        self.commanded_state_socket.pub_keypoints(action, "commanded_robot_state")
+        self.commanded_state_socket.pub_keypoints(expert_action, "commanded_robot_state")
 
         if self.start_teleop: 
             self.action_socket.send(bytes(pickle.dumps(action, protocol=-1)))
