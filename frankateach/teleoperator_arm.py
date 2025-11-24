@@ -482,7 +482,7 @@ class FrankaArmOperator:
             timestamp=time.time(),
         )
         if (self.cnt % 5 == 0): target_pos += np.random.normal(0, 0.0077, size=3)  # small position jitter (1 mm)
-        if (self.cnt % 50 == 0): target_pos[0] += 0.17
+        if (self.cnt % 50 == 0): target_pos[0] += 0.017
         action = FrankaAction(
             pos=target_pos.flatten().astype(np.float32),
             quat=target_quat.flatten().astype(np.float32),
