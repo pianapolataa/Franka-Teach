@@ -78,11 +78,13 @@ class RukaOperator:
 
     def _init_hand(self):
         self.handler = RUKAv2Handler()
+        self.cnt = 0
     
     def _apply_retargeted_angles(self) -> None:
         arm_teleop_state = self._get_arm_teleop_state()
         print(arm_teleop_state)
         transformed_hand_coords = self._get_hand_coords() # (24, 3)
+        self.cnt += 1
 
         if arm_teleop_state ==  ARM_TELEOP_CONT:
             self.start_teleop = True
