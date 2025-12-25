@@ -82,9 +82,10 @@ class FrankaArmOperator:
 
         # if  home_offset is None:
         #     home_offset = [-0.22, 0.0, 0.1]
-        self.home_offset = (
-            np.array(home_offset) if home_offset is not None else np.zeros(3)
-        )
+        # self.home_offset = (
+        #     np.array(home_offset) if home_offset is not None else np.zeros(3)
+        # )
+        self.home_offset = [0.0, 0.0, -0.2]
 
         self.use_filter = use_filter
         if use_filter:
