@@ -85,7 +85,7 @@ class FrankaArmOperator:
         # self.home_offset = (
         #     np.array(home_offset) if home_offset is not None else np.zeros(3)
         # )
-        self.home_offset = [0.0, 0.0, -0.5]
+        self.home_offset = [0.0, 0.0, -1.5]
 
         self.use_filter = use_filter
         if use_filter:
@@ -123,10 +123,6 @@ class FrankaArmOperator:
         R_mat = np.stack([x, y, z], axis=1)
         if np.linalg.det(R_mat) > 0:  # currently right-handed
             R_mat[:, -1] *= -1        # flip last axis to make it left-handed
-
-        # Debug prints
-        print("[DBG] Orthonormalized frame det:", np.linalg.det(R_mat),
-            "orth_err:", np.linalg.norm(R_mat.T @ R_mat - np.eye(3)))
 
         return [origin, R_mat[:, 0], R_mat[:, 1], R_mat[:, 2]]
         
@@ -234,9 +230,6 @@ class FrankaArmOperator:
         relative_affine = np.block(
             [[relative_affine_rot, relative_affine_trans.reshape(3, 1)], [0, 0, 0, 1]]
         )
-        print("[DBG] to_robot_frame det(rot):", np.linalg.det(relative_affine_rot),
-        "trans:", relative_affine_trans,
-        "rot_eulerXYZ_deg:", R.from_matrix(relative_affine_rot).as_euler('XYZ', degrees=True))
         return relative_affine
 
     def _scale_angle(self, angle, min_angle, max_angle):
