@@ -361,6 +361,7 @@ class FrankaArmOperator:
             print("1st frame: finish receiving robot state")
             # Move to offset position
             target_pos = robot_state.pos + self.home_offset
+            print(self.home_offset)
             target_quat = robot_state.quat
             target_quat = target_quat / np.linalg.norm(target_quat)
             target_quat = self._fix_quat_flip(target_quat)
@@ -407,14 +408,6 @@ class FrankaArmOperator:
             offset_frame = self._rotate_frame(3 * np.pi / 2, moving_wrist)
             offset_frame = self._orthonormalize_frame(offset_frame)
             self.hand_moving_offset_H = self._turn_frame_to_homo_mat(offset_frame)
-            print("[DBG] moving_frame det:", np.linalg.det(self.hand_moving_H[:3,:3]),
-                "eulerXYZ_deg:", R.from_matrix(self.hand_moving_H[:3,:3]).as_euler('XYZ', degrees=True))
-            print("[DBG] moving_offset_frame det:", np.linalg.det(self.hand_moving_offset_H[:3,:3]),
-                "eulerXYZ_deg:", R.from_matrix(self.hand_moving_offset_H[:3,:3]).as_euler('XYZ', degrees=True))
-            # Orthonormality check
-            print("[DBG] moving_frame orth_err:",
-                np.linalg.norm(self.hand_moving_H[:3,:3].T @ self.hand_moving_H[:3,:3] - np.eye(3)))
-            # self.hand_moving_offset_H = self._turn_frame_to_homo_mat(moving_wrist)
 
             # Transformation code
             # all 4x4 matrix
@@ -428,13 +421,6 @@ class FrankaArmOperator:
             relative_affine = self.robot_moving_H
             self.robot_moving_offset_H = self._to_robot_frame(H_HI_HH_offset, H_HT_HH_offset)
             relative_affine_offset = self.robot_moving_offset_H
-
-            print("[DBG] relative_pos_raw:", relative_affine[:3,3],
-                "relative_pos_offset:", relative_affine_offset[:3,3],
-                "diff:", relative_affine_offset[:3,3] - relative_affine[:3,3])
-            print("[DBG] relative_rot_det:", np.linalg.det(relative_affine[:3,:3]))
-            print("[DBG] relative_rot_eulerXYZ_deg:",
-                R.from_matrix(relative_affine[:3,:3]).as_euler('XYZ', degrees=True))
 
             # Use a Filter
             if self.use_filter:
