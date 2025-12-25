@@ -39,7 +39,7 @@ class FrankaArmOperator:
         arm_resolution_port = None,
         teleoperation_reset_port = None,
         init_gripper_state='open',
-        home_offset=[0, 0, -0.7],
+        home_offset=[0, 0, -2],
     ):
         notify_component_start('franka arm operator')
 
