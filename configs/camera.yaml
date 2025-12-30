@@ -2,7 +2,7 @@ cam_info:
   -
     cam_id: 1
     type: ip
-    url: "http://10.21.8.220:4747/video"   # phone ip
+    url: "http://10.21.35.3:4747/video"   # phone ip
     name: iphone_cam
 
 cam_config:
