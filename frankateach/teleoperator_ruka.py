@@ -110,6 +110,8 @@ class RukaOperator:
 
         if self.start_teleop:
             motor_positions = self.handler.get_command(transformed_hand_coords)
+            if motor_positions is None:
+                return None
             # if (self.cnt % 5 == 0): 
             #     motor_positions += np.random.normal(0, 40, size=16)
             #     motor_positions = np.clip(motor_positions, np.minimum(self.handler.hand.tensioned_pos, self.handler.hand.curled_bound), np.maximum(self.handler.hand.tensioned_pos, self.handler.hand.curled_bound))
