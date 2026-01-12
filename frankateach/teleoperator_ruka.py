@@ -106,6 +106,7 @@ class RukaOperator:
            
 
         if self.start_teleop:
+            print(transformed_hand_coords)
             motor_positions = self.handler.get_command(transformed_hand_coords)
             # if (self.cnt % 5 == 0): 
             #     motor_positions += np.random.normal(0, 40, size=16)
