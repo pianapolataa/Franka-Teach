@@ -84,7 +84,6 @@ class RukaOperator:
     def _apply_retargeted_angles(self) -> None:
         arm_teleop_state = self._get_arm_teleop_state()
         print(arm_teleop_state)
-        transformed_hand_coords = self._get_hand_coords() # (24, 3)
         self.cnt += 1
 
         if arm_teleop_state ==  ARM_TELEOP_CONT:
@@ -93,6 +92,12 @@ class RukaOperator:
         if arm_teleop_state ==  ARM_TELEOP_STOP:
             self.start_teleop = False
             # receive the robot state
+
+        transformed_hand_coords = None
+        while  transformed_hand_coords is None:
+            transformed_hand_coords = self._get_hand_coords()
+            return None
+        transformed_hand_coords = self._get_hand_coords() # (24, 3)
             
         if self.is_first_frame:
             # reset hand positiion
