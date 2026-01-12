@@ -21,6 +21,7 @@ from ruka_hand.utils.timer import FrequencyTimer
 from ruka_hand.utils.zmq import ZMQPublisher, create_pull_socket
 from ruka_hand.utils.trajectory import move_to_pos
 from ruka_hand.control.hand import Hand
+from ruka_hand.control.controller_retarget import DexRukav2Handler
 
 np.set_printoptions(precision=2, suppress=True)
 
@@ -77,7 +78,7 @@ class RukaOperator:
         return reset_stat
 
     def _init_hand(self):
-        self.handler = RUKAv2Handler()
+        self.handler = DexRukav2Handler(urdf_path="/home_shared/grail_sissi/BAKU/baku/vr-hand-tracking/Franka-Teach/RUKA/assets/robot.urdf", config_path="/home_shared/grail_sissi/BAKU/baku/vr-hand-tracking/Franka-Teach/RUKA/assets/dex_retarget.yml")
         self.cnt = 0
     
     def _apply_retargeted_angles(self) -> None:
@@ -106,9 +107,9 @@ class RukaOperator:
 
         if self.start_teleop:
             motor_positions = self.handler.get_command(transformed_hand_coords)
-            if (self.cnt % 5 == 0): 
-                motor_positions += np.random.normal(0, 40, size=16)
-                motor_positions = np.clip(motor_positions, np.minimum(self.handler.hand.tensioned_pos, self.handler.hand.curled_bound), np.maximum(self.handler.hand.tensioned_pos, self.handler.hand.curled_bound))
+            # if (self.cnt % 5 == 0): 
+            #     motor_positions += np.random.normal(0, 40, size=16)
+            #     motor_positions = np.clip(motor_positions, np.minimum(self.handler.hand.tensioned_pos, self.handler.hand.curled_bound), np.maximum(self.handler.hand.tensioned_pos, self.handler.hand.curled_bound))
             curr_pos = self.handler.hand.read_pos()
             self.ruka_state_socket.pub_keypoints(curr_pos, "ruka_state")
             self.ruka_commanded_state_socket.pub_keypoints(motor_positions, "commanded_ruka_state")
