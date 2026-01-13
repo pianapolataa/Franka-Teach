@@ -18,7 +18,7 @@ def modify_ruka_files(root_dir_name="bread_data"):
     ]
     
     target_index = 12
-    subtraction_value = 300
+    subtraction_value = -300
 
     print(f"Found {len(demo_folders)} demonstration folders.")
 
