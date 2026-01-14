@@ -113,8 +113,8 @@ class RukaOperator:
             if motor_positions is None:
                 return None
             ##
-            # motor_positions += np.random.normal(0, 40, size=16)
-            # motor_positions = np.clip(motor_positions, np.minimum(self.handler.hand.tensioned_pos, self.handler.hand.curled_bound), np.maximum(self.handler.hand.tensioned_pos, self.handler.hand.curled_bound))
+            motor_positions += np.random.normal(0, 40, size=16)
+            motor_positions = np.clip(motor_positions, np.minimum(self.handler.hand.tensioned_pos, self.handler.hand.curled_bound), np.maximum(self.handler.hand.tensioned_pos, self.handler.hand.curled_bound))
             ##
             curr_pos = self.handler.hand.read_pos()
             self.ruka_state_socket.pub_keypoints(curr_pos, "ruka_state")
