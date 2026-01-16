@@ -354,7 +354,7 @@ class FrankaArmOperator:
             print("1st frame: finish receiving robot state")
             # Move to offset position
             #
-            self.home_offset = [0, 0, -0.32]
+            self.home_offset = [0, 0, -0.17]
             #
             target_pos = robot_state.pos + self.home_offset
             print(self.home_offset)
@@ -438,7 +438,7 @@ class FrankaArmOperator:
             R_arm_compensation = relative_rot @ R_hand_limited.T
             target_rot = self.home_rot @ R_arm_compensation
             
-            target_pos = self.home_pos + relative_pos
+            target_pos = self.home_pos + relative_pos + [0, 0, -0.17] ###
             target_quat = transform_utils.mat2quat(target_rot)
             target_quat = target_quat / np.linalg.norm(target_quat)
             target_quat = self._fix_quat_flip(target_quat)
