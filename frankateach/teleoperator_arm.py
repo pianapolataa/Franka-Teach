@@ -353,6 +353,9 @@ class FrankaArmOperator:
             robot_state = pickle.loads(self.action_socket.recv())
             print("1st frame: finish receiving robot state")
             # Move to offset position
+            #
+            self.home_offset = [0, 0, -0.02]
+            #
             target_pos = robot_state.pos + self.home_offset
             print(self.home_offset)
             target_quat = robot_state.quat
