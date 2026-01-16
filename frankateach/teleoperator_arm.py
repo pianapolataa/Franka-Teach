@@ -352,26 +352,6 @@ class FrankaArmOperator:
             print("1st frame: finish sending reset action")
             robot_state = pickle.loads(self.action_socket.recv())
             print("1st frame: finish receiving robot state")
-            # Move to offset position
-            #
-            self.home_offset = [0, 0, -0.17]
-            #
-            target_pos = robot_state.pos + self.home_offset
-            print(self.home_offset)
-            target_quat = robot_state.quat
-            target_quat = target_quat / np.linalg.norm(target_quat)
-            target_quat = self._fix_quat_flip(target_quat)
-            action = FrankaAction(
-                pos=target_pos.flatten().astype(np.float32),
-                quat=target_quat.flatten().astype(np.float32),
-                gripper=self.gripper_state,
-                reset=False,
-                timestamp=time.time(),
-            )
-            self.action_socket.send(bytes(pickle.dumps(action, protocol=-1)))
-            
-            robot_state = pickle.loads(self.action_socket.recv())
-            print("1st frame: finish moving to offset position")
             # HOME <- Pos: [0.457632  0.0321814 0.2653815], Quat: [0.9998586  0.00880853 0.01421072 0.00179784]
 
             self.home_rot, self.home_pos = (
@@ -438,7 +418,7 @@ class FrankaArmOperator:
             R_arm_compensation = relative_rot @ R_hand_limited.T
             target_rot = self.home_rot @ R_arm_compensation
             
-            target_pos = self.home_pos + relative_pos + [0, 0, -0.077] ###
+            target_pos = self.home_pos + relative_pos + [0, 0, -0.07] ###
             target_quat = transform_utils.mat2quat(target_rot)
             target_quat = target_quat / np.linalg.norm(target_quat)
             target_quat = self._fix_quat_flip(target_quat)
