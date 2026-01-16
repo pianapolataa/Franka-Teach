@@ -354,7 +354,7 @@ class FrankaArmOperator:
             print("1st frame: finish receiving robot state")
             # Move to offset position
             #
-            self.home_offset = [0, 0, -0.02]
+            self.home_offset = [0, 0, -0.07]
             #
             target_pos = robot_state.pos + self.home_offset
             print(self.home_offset)
