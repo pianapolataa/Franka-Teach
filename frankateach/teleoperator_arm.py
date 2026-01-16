@@ -385,9 +385,7 @@ class FrankaArmOperator:
             self.robot_init_H[:3, 3] = self.home_pos
 
             self.is_first_frame = False
-        
-        return
-
+    
 
         if self.start_teleop:
             moving_wrist = self._get_hand_frame()
