@@ -1,4 +1,5 @@
 defaults:
   - _self_
 
-deoxys_config_path: "deoxys_single.yml"
+deoxys_config_path_left: "deoxys_left.yml"
+deoxys_config_path_right: "deoxys_right.yml"
