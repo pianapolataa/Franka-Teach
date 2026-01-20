@@ -444,9 +444,9 @@ class FrankaArmOperator:
             timestamp=time.time(),
         )
         ##
-        if self.cnt % 3 == 0:
-            target_pos += np.random.normal(0, 0.0277, size=3)
-            target_quat += np.random.normal(0, 0.0057, size=4)
+        # if self.cnt % 3 == 0:
+        #     target_pos += np.random.normal(0, 0.0277, size=3)
+        #     target_quat += np.random.normal(0, 0.0057, size=4)
         ##
         action = FrankaAction(
             pos=target_pos.flatten().astype(np.float32),
