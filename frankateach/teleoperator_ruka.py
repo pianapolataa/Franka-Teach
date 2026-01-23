@@ -117,6 +117,7 @@ class RukaOperator:
                 self.close = True
             if self.close:
                 motor_positions[7] = 1900
+            print(motor_positions[7])
             ##
             # if self.cnt % 3 == 0:
             #     motor_positions += np.random.normal(0, 40, size=16)
