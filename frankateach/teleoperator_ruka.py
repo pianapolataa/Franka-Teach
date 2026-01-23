@@ -113,10 +113,10 @@ class RukaOperator:
             motor_positions = self.handler.get_command(transformed_hand_coords)
             if motor_positions is None:
                 return None
-            if motor_positions[7] < 2000:
+            if motor_positions[7] < 2100:
                 self.close = True
             if self.close:
-                motor_positions[7] = 1900
+                motor_positions[7] = 1950
             print(motor_positions[7])
             ##
             # if self.cnt % 3 == 0:
