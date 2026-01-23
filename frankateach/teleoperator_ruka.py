@@ -60,6 +60,7 @@ class RukaOperator:
         # )
         
         self.hand_type = hand_type
+        self.close = False
         
     def _get_hand_coords(self):
         for i in range(10):
@@ -112,6 +113,10 @@ class RukaOperator:
             motor_positions = self.handler.get_command(transformed_hand_coords)
             if motor_positions is None:
                 return None
+            if motor_positions[7] < 2000:
+                self.close = True
+            if self.close:
+                motor_positions[7] = 1900
             ##
             # if self.cnt % 3 == 0:
             #     motor_positions += np.random.normal(0, 40, size=16)
