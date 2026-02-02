@@ -14,20 +14,28 @@ def start_oculus_hand(cfg):
     detector = instantiate(cfg.oculus_hand_detector)
     detector.stream()
 
+def start_oculus_hand_left(cfg):
+    detector = instantiate(cfg.oculus_hand_detector_left)
+    detector.stream()
+
 def start_hand_transform(cfg):
     transformer = instantiate(cfg.hand_transform)
+    transformer.stream()
+
+def start_hand_transform_left(cfg):
+    transformer = instantiate(cfg.hand_transform_left)
     transformer.stream()
     
 def start_teleop_stick(cfg):
     operator = instantiate(cfg.stick_operators)
     operator.stream()
 
-def start_teleop_arm_left(cfg):
+def start_teleop_arm(cfg):
     operator = instantiate(cfg.arm_operators)
     operator.stream()
 
-def start_teleop_arm_right(cfg):
-    operator = instantiate(cfg.arm_operators)
+def start_teleop_arm_left(cfg):
+    operator = instantiate(cfg.arm_operators_left)
     operator.stream()
     
 def start_teleop_hand(cfg):
@@ -47,7 +55,7 @@ def main(cfg):
         oculus_process = Process(target=start_oculus_hand, args=(cfg,))
         transform_process = Process(target=start_hand_transform, args=(cfg,))
         # teleop_process_left = Process(target=start_teleop_arm_left, args=(cfg,))
-        teleop_process_right = Process(target=start_teleop_arm_right, args=(cfg,))
+        teleop_process_right = Process(target=start_teleop_arm, args=(cfg,))
         if cfg.use_hand_tracking:
             ruka_process = Process(target=start_teleop_hand, args=(cfg,))
             processes.append(ruka_process)
