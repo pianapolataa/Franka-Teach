@@ -116,7 +116,7 @@ class RukaOperator:
             if motor_positions[7] < 2100:
                 self.close = True
             if self.close:
-                motor_positions[7] = 1950
+                motor_positions[7] = 1643
             print(motor_positions[7])
             ##
             # if self.cnt % 3 == 0:
