@@ -86,6 +86,8 @@ class OculusVRHandDetector():
                 button_feedback = self.button_keypoint_socket.recv()
                 pause_status = self.teleop_reset_socket.recv()
 
+                print("received")
+
 
                 if button_feedback==b'low':
                     button_feedback_num = ARM_LOW_RESOLUTION
