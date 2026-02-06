@@ -1,49 +1,48 @@
 import zmq
 from frankateach.network import create_pull_socket
-from frankateach.constants import INTERNAL_IP
 
-def test_oculus_sockets():
-    # Ports as defined in your setup
-    button_port = 8095
-    teleop_reset_port = 8100
+def test_internal_ports():
+    # These are the ports the Splitter is pushing TO
+    button_port = 9095
+    reset_port = 9100
+    localhost = "127.0.0.1"
 
-    print(f"--- Socket Test ---")
-    print(f"IP: {INTERNAL_IP}")
+    print(f"--- Internal Splitter Test ---")
     
     try:
-        # 1. Initialize sockets exactly like your class does
-        print(f"Attempting to bind Button Port: {button_port}")
-        button_keypoint_socket = create_pull_socket(INTERNAL_IP, button_port)
+        # Initializing the sockets exactly like your detector class
+        print(f"Binding to Internal Button Port: {button_port}")
+        button_sock = create_pull_socket(localhost, button_port)
         
-        print(f"Attempting to bind Reset Port: {teleop_reset_port}")
-        teleop_reset_socket = create_pull_socket(INTERNAL_IP, teleop_reset_port)
+        print(f"Binding to Internal Reset Port: {reset_port}")
+        reset_sock = create_pull_socket(localhost, reset_port)
         
     except zmq.ZMQError as e:
         print(f"\n[!] ERROR: {e}")
-        print("This usually means the port is already in use by another script.")
+        print("Check if your teleop script is already running and using these ports.")
         return
 
-    print("\nSuccessfully bound to sockets. Waiting for data (press buttons on Oculus)...")
+    print("\nSuccessfully connected to Splitter. Waiting for messages...")
 
     while True:
         try:
-            # 2. Replicate the .recv() logic
-            # These are blocking calls; the script will wait here until data arrives
-            button_data = button_keypoint_socket.recv()
-            print(f"[PORT 8095] Received Button Data: {button_data}")
+            # We use NOBLOCK or a timeout if you want to see both ports, 
+            # but for a simple test, we'll do standard blocking recvs.
+            
+            print("Checking for Button Data (8095 -> 9095)...")
+            btn_msg = button_sock.recv()
+            print(f">>> RECEIVED ON 9095: {btn_msg}")
 
-            reset_data = teleop_reset_socket.recv()
-            print(f"[PORT 8100] Received Reset Data: {reset_data}")
+            print("Checking for Reset Data (8100 -> 9100)...")
+            rst_msg = reset_sock.recv()
+            print(f">>> RECEIVED ON 9100: {rst_msg}")
 
         except KeyboardInterrupt:
             print("\nStopping test.")
             break
         except Exception as e:
-            print(f"Error during recv: {e}")
+            print(f"Unexpected error: {e}")
             break
 
-    button_keypoint_socket.close()
-    teleop_reset_socket.close()
-
 if __name__ == "__main__":
-    test_oculus_sockets()
+    test_internal_ports()
