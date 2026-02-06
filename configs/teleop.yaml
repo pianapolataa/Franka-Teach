@@ -30,8 +30,8 @@ oculus_hand_detector:
   keypoint_pub_port: ${keypoint_port} # keypoint publish port
   button_port: ${resolution_button_port}
   button_publish_port: ${resolution_button_publish_port}
-  teleop_reset_port: ${teleop_reset_port}
-  teleop_reset_publish_port: ${teleop_reset_publish_port}
+  teleop_reset_port: 9095
+  teleop_reset_publish_port: 9100
 
 oculus_hand_detector_left:
   _target_: frankateach.oculus_hand.OculusVRHandDetector
@@ -39,8 +39,8 @@ oculus_hand_detector_left:
   keypoint_pub_port: ${keypoint_port_left} # keypoint publish port
   button_port: ${resolution_button_port}
   button_publish_port: ${resolution_button_publish_port}
-  teleop_reset_port: ${teleop_reset_port}
-  teleop_reset_publish_port: ${teleop_reset_publish_port}
+  teleop_reset_port: 9096
+  teleop_reset_publish_port: 9101
 
 hand_transform:
   _target_: frankateach.keypoint_transform.TransformHandPositionCoords
