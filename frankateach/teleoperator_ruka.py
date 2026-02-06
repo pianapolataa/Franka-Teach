@@ -127,7 +127,7 @@ class RukaOperator:
             self.ruka_state_socket.pub_keypoints(curr_pos, "ruka_state")
             self.ruka_commanded_state_socket.pub_keypoints(motor_positions, "commanded_ruka_state")
             print(motor_positions)
-            motor_positions[:14] = [1872.99, 2540.,   1617.,   1860.,   1792.78, 2900.,   1520.,   1950.,   1669.2, 3229.,   3120.56, 1448.99,  846.13, 1582.89]
+            motor_positions[:14] = [1872.99, 2540.,   1617.,   1860.,   1792.78, 2900.,   1520.,   2050.,   1669.2, 3229.,   3120.56, 1448.99,  846.13, 1582.89]
             move_to_pos(curr_pos=curr_pos, des_pos=motor_positions, hand=self.handler.hand, traj_len=15)
   
 
