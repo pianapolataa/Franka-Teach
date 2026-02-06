@@ -16,7 +16,7 @@ def relay_worker(source_port, target_ports):
     pushers = []
     for port in target_ports:
         pusher = context.socket(zmq.PUSH)
-        pusher.bind(f"tcp://127.0.0.1:{port}")
+        pusher.connect(f"tcp://127.0.0.1:{port}")
         pushers.append(pusher)
     
     print(f"Relay Active: {source_port} -> {target_ports}")
