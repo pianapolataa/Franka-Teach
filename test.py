@@ -5,7 +5,7 @@ def test_internal_ports():
     # These are the ports the Splitter is pushing TO
     button_port = 9095
     reset_port = 9100
-    localhost = "127.0.0.1"
+    localhost = "172.24.71.240"
 
     print(f"Binding to Internal Button Port: {button_port}")
     button_sock = create_pull_socket(localhost, button_port)
