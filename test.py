@@ -1,37 +1,27 @@
-import socket
-import threading
+import zmq
 
-def listen_to_port(port, hand_label):
-    # Create a UDP socket
-    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+def simple_receiver():
+    context = zmq.Context()
+    # Use a PULL socket because that's what your detector uses
+    socket = context.socket(zmq.PULL)
     
-    # Bind to all interfaces on the specified port
+    # We BIND here because your code expects to "own" the port
+    port = 9095
     try:
-        sock.bind(('0.0.0.0', port))
-        print(f"Listening for {hand_label} hand on port {port}...")
-    except Exception as e:
-        print(f"Error binding to port {port}: {e}")
+        socket.bind(f"tcp://127.0.0.1:{port}")
+        print(f"Successfully bound to port {port}. Waiting for data...")
+    except zmq.ZMQError as e:
+        print(f"Error: Could not bind to {port}. Is your teleop script already running? {e}")
         return
 
     while True:
-        data, addr = sock.recvfrom(4096)  # Buffer size 4096 bytes
-        # Print a snippet of the received data so it doesn't flood your terminal
-        print(f"[{hand_label} - Port {port}] Received from {addr}: {data[:50]}...")
+        try:
+            # Wait for data
+            message = socket.recv()
+            print(f"Received: {message}")
+        except KeyboardInterrupt:
+            print("\nStopping...")
+            break
 
 if __name__ == "__main__":
-    # Start thread for Right Hand (8087)
-    right_thread = threading.Thread(target=listen_to_port, args=(8087, "RIGHT"), daemon=True)
-    
-    # Start thread for Left Hand (8110)
-    left_thread = threading.Thread(target=listen_to_port, args=(8110, "LEFT"), daemon=True)
-
-    right_thread.start()
-    left_thread.start()
-
-    print("Checking for Oculus data... Press Ctrl+C to stop.")
-    
-    try:
-        while True:
-            pass # Keep main thread alive
-    except KeyboardInterrupt:
-        print("\nStopping listeners.")
+    simple_receiver()
