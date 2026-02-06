@@ -47,27 +47,23 @@ def start_teleop_hand(cfg):
 @hydra.main(version_base="1.2", config_path="configs", config_name="teleop")
 def main(cfg):
     processes = []
-    
-    if cfg.use_oculus_stick:
-        oculus_process = Process(target=start_oculus_stick, args=(cfg,))
-        teleop_process = Process(target=start_teleop_stick, args=(cfg,))
-    else:
-        oculus_process = Process(target=start_oculus_hand, args=(cfg,))
-        oculus_process_left = Process(target=start_oculus_hand_left, args=(cfg,))
-        transform_process = Process(target=start_hand_transform, args=(cfg,))
-        transform_process_left = Process(target=start_hand_transform_left, args=(cfg,))
-        # teleop_process_left = Process(target=start_teleop_arm_left, args=(cfg,))
-        # teleop_process_right = Process(target=start_teleop_arm, args=(cfg,))
-        if cfg.use_hand_tracking:
-            ruka_process = Process(target=start_teleop_hand, args=(cfg,))
-            processes.append(ruka_process)
-        processes.append(transform_process)
-        processes.append(transform_process_left)
+
+    oculus_process = Process(target=start_oculus_hand, args=(cfg,))
+    oculus_process_left = Process(target=start_oculus_hand_left, args=(cfg,))
+    transform_process = Process(target=start_hand_transform, args=(cfg,))
+    transform_process_left = Process(target=start_hand_transform_left, args=(cfg,))
+    # teleop_process_left = Process(target=start_teleop_arm_left, args=(cfg,))
+    # teleop_process = Process(target=start_teleop_arm, args=(cfg,))
+    if cfg.use_hand_tracking:
+        ruka_process = Process(target=start_teleop_hand, args=(cfg,))
+        processes.append(ruka_process)
     
     processes.append(oculus_process)
     processes.append(oculus_process_left)
+    processes.append(transform_process)
+    processes.append(transform_process_left)
     # processes.append(teleop_process_left)
-    # processes.append(teleop_process_right)
+    # processes.append(teleop_process)
 
     for p in processes:
         p.start()
