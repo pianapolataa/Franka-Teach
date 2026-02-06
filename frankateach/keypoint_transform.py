@@ -95,6 +95,7 @@ class TransformHandPositionCoords():
         while True:
             try:
                 self.timer.start_loop()
+                print("started")
                 data_type, hand_coords = self._get_hand_coords()
                 print("recvd")
                 self.logging_enabled = True
