@@ -96,6 +96,7 @@ class TransformHandPositionCoords():
             try:
                 self.timer.start_loop()
                 data_type, hand_coords = self._get_hand_coords()
+                print("recvd")
                 self.logging_enabled = True
                 # Shift the points to required axes
                 transformed_hand_coords, translated_hand_coord_frame = self.transform_keypoints(hand_coords)
