@@ -1,110 +1,14 @@
-# Ports SHOULD NOT BE CHANGED (defined in Unity)
-oculus_port: 8087 # Get raw keypoint
-oculus_port_left: 8110
-resolution_button_port:  8095
-teleop_reset_port: 8100
-oculus_graph_port: 15001
-
-keypoint_port: 8078 
-keypoint_port_left: 8077
-resolution_button_publish_port: 8090
-teleop_reset_publish_port: 8092
-transformed_position_keypoint_port: 8093
-transformed_position_keypoint_port_left: 8094
-
-VR_CONTROLLER_STATE_PORT: 8889
-
-init_gripper_state: open # open, close
-teleop_mode: robot # robot, human
-home_offset: null
-use_oculus_stick: false
-use_hand_tracking: false
-
-oculus_stick_detector:
-  _target_: frankateach.oculus_stick.OculusVRStickDetector
-  port: ${VR_CONTROLLER_STATE_PORT}
-
-oculus_hand_detector:
-  _target_: frankateach.oculus_hand.OculusVRHandDetector
-  oculus_port: ${oculus_port} # Get raw keypoint
-  keypoint_pub_port: ${keypoint_port} # keypoint publish port
-  button_port: ${resolution_button_port}
-  button_publish_port: ${resolution_button_publish_port}
-  teleop_reset_port: ${teleop_reset_port}
-  teleop_reset_publish_port: ${teleop_reset_publish_port}
-
-oculus_hand_detector_left:
-  _target_: frankateach.oculus_hand.OculusVRHandDetector
-  oculus_port: ${oculus_port_left} # Get raw keypoint
-  keypoint_pub_port: ${keypoint_port_left} # keypoint publish port
-  button_port: ${resolution_button_port}
-  button_publish_port: ${resolution_button_publish_port}
-  teleop_reset_port: ${teleop_reset_port}
-  teleop_reset_publish_port: ${teleop_reset_publish_port}
-
-hand_transform:
-  _target_: frankateach.keypoint_transform.TransformHandPositionCoords
-  keypoint_port: ${keypoint_port}  # keypoint receive port
-  transformation_port: ${transformed_position_keypoint_port} # publish transformed keypoint
-  moving_average_limit: 1
-
-hand_transform_left:
-  _target_: frankateach.keypoint_transform.TransformHandPositionCoords
-  keypoint_port: ${keypoint_port_left}  # keypoint receive port
-  transformation_port: ${transformed_position_keypoint_port} # publish transformed keypoint
-  moving_average_limit: 1
-
-stick_operators:
-    _target_: frankateach.teleoperator_stick.FrankaOperator
-    init_gripper_state: ${init_gripper_state} # open, close
-    teleop_mode: ${teleop_mode} # robot, human
-    home_offset: ${home_offset} # null, [x, y, z] in meters
-  
-
-arm_operators:
-    _target_: frankateach.teleoperator_arm.FrankaArmOperator
-    transformed_keypoints_port: ${transformed_position_keypoint_port} # transformed keypoint port
-    use_filter: False
-    arm_resolution_port: ${resolution_button_publish_port} 
-    teleoperation_reset_port: ${teleop_reset_publish_port}
-    init_gripper_state: ${init_gripper_state} # open, close
-    home_offset: ${home_offset} # null, [x, y, z] in meters
-
-arm_operators_left:
-    _target_: frankateach.teleoperator_arm.FrankaArmOperator
-    transformed_keypoints_port: ${transformed_position_keypoint_port_left} # transformed keypoint port
-    use_filter: False
-    arm_resolution_port: ${resolution_button_publish_port} 
-    teleoperation_reset_port: ${teleop_reset_publish_port}
-    init_gripper_state: ${init_gripper_state} # open, close
-    home_offset: ${home_offset} # null, [x, y, z] in meters
-  
-ruka_operators:
-    _target_: frankateach.teleoperator_ruka.RukaOperator
-    transformed_keypoints_port: ${transformed_position_keypoint_port} # transformed keypoint port
-    teleoperation_reset_port: ${teleop_reset_publish_port}
-    hand_type: "right"
-
-manus_streamer:
-    _target_: ruka_hand.manus_streamer.manus_streamer
-    hand_type: "right"
-    frequency: 100
-    host: 
-
-
-  ###
-#   # Ports SHOULD NOT BE CHANGED (defined in Unity)
+# # Ports SHOULD NOT BE CHANGED (defined in Unity)
 # oculus_port: 8087 # Get raw keypoint
 # oculus_port_left: 8110
 # resolution_button_port:  8095
 # teleop_reset_port: 8100
+# oculus_graph_port: 15001
 
 # keypoint_port: 8078 
 # keypoint_port_left: 8077
 # resolution_button_publish_port: 8090
-# resolution_button_publish_port_left: 8091
 # teleop_reset_publish_port: 8092
-# teleop_reset_publish_port_left: 8097
 # transformed_position_keypoint_port: 8093
 # transformed_position_keypoint_port_left: 8094
 
@@ -124,19 +28,19 @@ manus_streamer:
 #   _target_: frankateach.oculus_hand.OculusVRHandDetector
 #   oculus_port: ${oculus_port} # Get raw keypoint
 #   keypoint_pub_port: ${keypoint_port} # keypoint publish port
-#   button_port: 9095
+#   button_port: ${resolution_button_port}
 #   button_publish_port: ${resolution_button_publish_port}
-#   teleop_reset_port: 9100
+#   teleop_reset_port: ${teleop_reset_port}
 #   teleop_reset_publish_port: ${teleop_reset_publish_port}
 
 # oculus_hand_detector_left:
 #   _target_: frankateach.oculus_hand.OculusVRHandDetector
 #   oculus_port: ${oculus_port_left} # Get raw keypoint
 #   keypoint_pub_port: ${keypoint_port_left} # keypoint publish port
-#   button_port: 9096
-#   button_publish_port: ${resolution_button_publish_port_left}
-#   teleop_reset_port: 9101
-#   teleop_reset_publish_port: ${teleop_reset_publish_port_left}
+#   button_port: ${resolution_button_port}
+#   button_publish_port: ${resolution_button_publish_port}
+#   teleop_reset_port: ${teleop_reset_port}
+#   teleop_reset_publish_port: ${teleop_reset_publish_port}
 
 # hand_transform:
 #   _target_: frankateach.keypoint_transform.TransformHandPositionCoords
@@ -147,7 +51,7 @@ manus_streamer:
 # hand_transform_left:
 #   _target_: frankateach.keypoint_transform.TransformHandPositionCoords
 #   keypoint_port: ${keypoint_port_left}  # keypoint receive port
-#   transformation_port: ${transformed_position_keypoint_port_left} # publish transformed keypoint
+#   transformation_port: ${transformed_position_keypoint_port} # publish transformed keypoint
 #   moving_average_limit: 1
 
 # stick_operators:
@@ -170,8 +74,8 @@ manus_streamer:
 #     _target_: frankateach.teleoperator_arm.FrankaArmOperator
 #     transformed_keypoints_port: ${transformed_position_keypoint_port_left} # transformed keypoint port
 #     use_filter: False
-#     arm_resolution_port: ${resolution_button_publish_port_left} 
-#     teleoperation_reset_port: ${teleop_reset_publish_port_left}
+#     arm_resolution_port: ${resolution_button_publish_port} 
+#     teleoperation_reset_port: ${teleop_reset_publish_port}
 #     init_gripper_state: ${init_gripper_state} # open, close
 #     home_offset: ${home_offset} # null, [x, y, z] in meters
   
@@ -186,3 +90,99 @@ manus_streamer:
 #     hand_type: "right"
 #     frequency: 100
 #     host: 
+
+
+  ##
+  # Ports SHOULD NOT BE CHANGED (defined in Unity)
+oculus_port: 8087 # Get raw keypoint
+oculus_port_left: 8110
+resolution_button_port:  8095
+teleop_reset_port: 8100
+
+keypoint_port: 8078 
+keypoint_port_left: 8077
+resolution_button_publish_port: 8090
+resolution_button_publish_port_left: 8091
+teleop_reset_publish_port: 8092
+teleop_reset_publish_port_left: 8097
+transformed_position_keypoint_port: 8093
+transformed_position_keypoint_port_left: 8094
+
+VR_CONTROLLER_STATE_PORT: 8889
+
+init_gripper_state: open # open, close
+teleop_mode: robot # robot, human
+home_offset: null
+use_oculus_stick: false
+use_hand_tracking: false
+
+oculus_stick_detector:
+  _target_: frankateach.oculus_stick.OculusVRStickDetector
+  port: ${VR_CONTROLLER_STATE_PORT}
+
+oculus_hand_detector:
+  _target_: frankateach.oculus_hand.OculusVRHandDetector
+  oculus_port: ${oculus_port} # Get raw keypoint
+  keypoint_pub_port: ${keypoint_port} # keypoint publish port
+  button_port: 9095
+  button_publish_port: ${resolution_button_publish_port}
+  teleop_reset_port: 9100
+  teleop_reset_publish_port: ${teleop_reset_publish_port}
+
+oculus_hand_detector_left:
+  _target_: frankateach.oculus_hand.OculusVRHandDetector
+  oculus_port: ${oculus_port_left} # Get raw keypoint
+  keypoint_pub_port: ${keypoint_port_left} # keypoint publish port
+  button_port: 9096
+  button_publish_port: ${resolution_button_publish_port_left}
+  teleop_reset_port: 9101
+  teleop_reset_publish_port: ${teleop_reset_publish_port_left}
+
+hand_transform:
+  _target_: frankateach.keypoint_transform.TransformHandPositionCoords
+  keypoint_port: ${keypoint_port}  # keypoint receive port
+  transformation_port: ${transformed_position_keypoint_port} # publish transformed keypoint
+  moving_average_limit: 1
+
+hand_transform_left:
+  _target_: frankateach.keypoint_transform.TransformHandPositionCoords
+  keypoint_port: ${keypoint_port_left}  # keypoint receive port
+  transformation_port: ${transformed_position_keypoint_port_left} # publish transformed keypoint
+  moving_average_limit: 1
+
+stick_operators:
+    _target_: frankateach.teleoperator_stick.FrankaOperator
+    init_gripper_state: ${init_gripper_state} # open, close
+    teleop_mode: ${teleop_mode} # robot, human
+    home_offset: ${home_offset} # null, [x, y, z] in meters
+  
+
+arm_operators:
+    _target_: frankateach.teleoperator_arm.FrankaArmOperator
+    transformed_keypoints_port: ${transformed_position_keypoint_port} # transformed keypoint port
+    use_filter: False
+    arm_resolution_port: ${resolution_button_publish_port} 
+    teleoperation_reset_port: ${teleop_reset_publish_port}
+    init_gripper_state: ${init_gripper_state} # open, close
+    home_offset: ${home_offset} # null, [x, y, z] in meters
+
+arm_operators_left:
+    _target_: frankateach.teleoperator_arm.FrankaArmOperator
+    transformed_keypoints_port: ${transformed_position_keypoint_port_left} # transformed keypoint port
+    use_filter: False
+    arm_resolution_port: ${resolution_button_publish_port_left} 
+    teleoperation_reset_port: ${teleop_reset_publish_port_left}
+    init_gripper_state: ${init_gripper_state} # open, close
+    home_offset: ${home_offset} # null, [x, y, z] in meters
+  
+ruka_operators:
+    _target_: frankateach.teleoperator_ruka.RukaOperator
+    transformed_keypoints_port: ${transformed_position_keypoint_port} # transformed keypoint port
+    teleoperation_reset_port: ${teleop_reset_publish_port}
+    hand_type: "right"
+
+manus_streamer:
+    _target_: ruka_hand.manus_streamer.manus_streamer
+    hand_type: "right"
+    frequency: 100
+    host: 
