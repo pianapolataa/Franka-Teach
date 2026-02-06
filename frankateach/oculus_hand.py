@@ -83,10 +83,12 @@ class OculusVRHandDetector():
                 self.timer.start_loop()
                 
                 raw_keypoints = self.raw_keypoint_socket.recv()
+                print("received keypts")
                 button_feedback = self.button_keypoint_socket.recv()
+                print("received button")
                 pause_status = self.teleop_reset_socket.recv()
 
-                print("received")
+                print("received pause")
 
 
                 if button_feedback==b'low':
