@@ -5,10 +5,16 @@ resolution_button_port:  8095
 teleop_reset_port: 8100
 oculus_graph_port: 15001
 
+resolution_button_port_left:  9095
+teleop_reset_port_left: 9100
+resolution_button_port_right:  9096
+teleop_reset_port_right: 9101
 keypoint_port: 8078 
 keypoint_port_left: 8077
 resolution_button_publish_port: 8090
+resolution_button_publish_port_left: 8091
 teleop_reset_publish_port: 8092
+teleop_reset_publish_port_left: 8097
 transformed_position_keypoint_port: 8093
 transformed_position_keypoint_port_left: 8094
 
@@ -28,19 +34,19 @@ oculus_hand_detector:
   _target_: frankateach.oculus_hand.OculusVRHandDetector
   oculus_port: ${oculus_port} # Get raw keypoint
   keypoint_pub_port: ${keypoint_port} # keypoint publish port
-  button_port: 9095
+  button_port: ${resolution_button_port_right}
   button_publish_port: ${resolution_button_publish_port}
-  teleop_reset_port: 9100
+  teleop_reset_port: ${teleop_reset_port_right}
   teleop_reset_publish_port: ${teleop_reset_publish_port}
 
 oculus_hand_detector_left:
   _target_: frankateach.oculus_hand.OculusVRHandDetector
   oculus_port: ${oculus_port_left} # Get raw keypoint
   keypoint_pub_port: ${keypoint_port_left} # keypoint publish port
-  button_port: ${resolution_button_port}
-  button_publish_port: ${resolution_button_publish_port}
-  teleop_reset_port: ${teleop_reset_port}
-  teleop_reset_publish_port: ${teleop_reset_publish_port}
+  button_port: ${resolution_button_port_left}
+  button_publish_port: ${resolution_button_publish_port_left}
+  teleop_reset_port: ${teleop_reset_port_left}
+  teleop_reset_publish_port: ${teleop_reset_publish_port_left}
 
 hand_transform:
   _target_: frankateach.keypoint_transform.TransformHandPositionCoords
@@ -51,7 +57,7 @@ hand_transform:
 hand_transform_left:
   _target_: frankateach.keypoint_transform.TransformHandPositionCoords
   keypoint_port: ${keypoint_port_left}  # keypoint receive port
-  transformation_port: ${transformed_position_keypoint_port} # publish transformed keypoint
+  transformation_port: ${transformed_position_keypoint_port_left} # publish transformed keypoint
   moving_average_limit: 1
 
 stick_operators:
@@ -74,8 +80,8 @@ arm_operators_left:
     _target_: frankateach.teleoperator_arm.FrankaArmOperator
     transformed_keypoints_port: ${transformed_position_keypoint_port_left} # transformed keypoint port
     use_filter: False
-    arm_resolution_port: ${resolution_button_publish_port} 
-    teleoperation_reset_port: ${teleop_reset_publish_port}
+    arm_resolution_port: ${resolution_button_publish_port_left} 
+    teleoperation_reset_port: ${teleop_reset_publish_port_left}
     init_gripper_state: ${init_gripper_state} # open, close
     home_offset: ${home_offset} # null, [x, y, z] in meters
   
