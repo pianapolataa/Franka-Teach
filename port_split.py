@@ -30,7 +30,7 @@ def relay_worker(source_port, target_ports):
 
 if __name__ == "__main__":
     # Split Button Port 8095 -> 9095 (Right Hand) and 9096 (Left Hand)
-    t1 = threading.Thread(target=relay_worker, args=(8095, [9095, 9096]))
+    t1 = threading.Thread(target=relay_worker, args=(8087, [9095, 9096]))
     
     # Split Reset Port 8100 -> 9100 (Right Hand) and 9101 (Left Hand)
     t2 = threading.Thread(target=relay_worker, args=(8100, [9100, 9101]))
