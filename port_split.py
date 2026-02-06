@@ -1,36 +1,44 @@
 import socket
 import zmq
 
-def run_hybrid_relay():
-    # 1. Setup ZMQ to talk to your Teleop Script
+def start_bridge():
     context = zmq.Context()
     
-    # We use PUSH because your detectors are using PULL
-    # We CONNECT because your detectors are BINDING to 9095/9096
-    right_push = context.socket(zmq.PUSH)
-    right_push.connect("tcp://127.0.0.1:9095")
+    # Setup ZMQ Pushers (These connect to your Teleop PULL sockets)
+    # We use CONNECT here because your code will BIND to the internal ports
+    right_hand_pub = context.socket(zmq.PUSH)
+    right_hand_pub.connect("tcp://127.0.0.1:9087")
     
-    left_push = context.socket(zmq.PUSH)
-    left_push.connect("tcp://127.0.0.1:9096")
+    left_hand_pub = context.socket(zmq.PUSH)
+    left_hand_pub.connect("tcp://127.0.0.1:9110")
 
-    # 2. Setup UDP to talk to the Oculus Quest
-    udp_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    try:
-        udp_sock.bind(('0.0.0.0', 8095))
-        print("Success: Listening for Quest UDP data on 8095")
-    except Exception as e:
-        print(f"Error: Could not bind to 8095. Is another script running? {e}")
-        return
+    button_pub = context.socket(zmq.PUSH)
+    button_pub.connect("tcp://127.0.0.1:9095") # For Right Hand process
+    button_pub_left = context.socket(zmq.PUSH)
+    button_pub_left.connect("tcp://127.0.0.1:9096") # For Left Hand process
 
-    print("Forwarding Quest(UDP:8095) -> Right(ZMQ:9095) & Left(ZMQ:9096)")
+    # Setup UDP Listeners (To catch the Oculus App)
+    udp_ports = [8087, 8110, 8095]
+    socks = {}
+    for p in udp_ports:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.bind(('0.0.0.0', p))
+        s.setblocking(False)
+        socks[p] = s
+
+    print("Bridge Active. Quest (UDP) -> Teleop (ZMQ)")
 
     while True:
-        # Receive raw bytes from Quest
-        data, addr = udp_sock.recvfrom(4096)
-        
-        # Forward via ZMQ to both detectors
-        right_push.send(data)
-        left_push.send(data)
+        for p, s in socks.items():
+            try:
+                data, addr = s.recvfrom(4096)
+                if p == 8087: right_hand_pub.send(data)
+                elif p == 8110: left_hand_pub.send(data)
+                elif p == 8095: 
+                    button_pub.send(data)
+                    button_pub_left.send(data) # Split the button to both!
+            except BlockingIOError:
+                continue
 
 if __name__ == "__main__":
-    run_hybrid_relay()
+    start_bridge()
