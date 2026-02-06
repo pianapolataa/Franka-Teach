@@ -18,9 +18,6 @@ class OculusVRHandDetector():
         self.teleop_reset_socket = create_pull_socket(INTERNAL_IP, teleop_reset_port)
         print(button_port)
         print(teleop_reset_port)
-
-        button_feedback = self.button_keypoint_socket.recv()
-        print("received button")
         
          # ZMQ Keypoint publisher
         self.hand_keypoint_publisher = ZMQKeypointPublisher(
@@ -91,9 +88,9 @@ class OculusVRHandDetector():
                 print("received keypts")
                 button_feedback = self.button_keypoint_socket.recv()
                 print("received button")
-                pause_status = self.teleop_reset_socket.recv()
+                # pause_status = self.teleop_reset_socket.recv()
 
-                print("received pause")
+                # print("received pause")
 
 
                 if button_feedback==b'low':
@@ -101,16 +98,16 @@ class OculusVRHandDetector():
                 else:
                     button_feedback_num = ARM_HIGH_RESOLUTION
 
-                if pause_status==b'Low':
-                    pause_status = ARM_TELEOP_STOP 
-                else:
-                    pause_status = ARM_TELEOP_CONT
+                # if pause_status==b'Low':
+                #     pause_status = ARM_TELEOP_STOP 
+                # else:
+                #     pause_status = ARM_TELEOP_CONT
  
                 keypoint_dict = self._extract_data_from_token(raw_keypoints)
 
                 self._publish_data(keypoint_dict)
                 self._publish_button_data(button_feedback_num)
-                self._publish_pause_data(pause_status)
+                # self._publish_pause_data(pause_status)
                 self.timer.end_loop()
                 i +=1
             except:
