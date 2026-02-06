@@ -10,16 +10,16 @@ def test_transformed_frames(port1, port2):
     sub1 = ZMQKeypointSubscriber(
         host=LOCALHOST,
         port=port1,
-        topic='transformed_hand_frame'
+        topic='transformed_hand_coords'
     )
 
     sub2 = ZMQKeypointSubscriber(
         host=LOCALHOST,
         port=port2,
-        topic='transformed_hand_frame'
+        topic='transformed_hand_coords'
     )
 
-    print("Subscribers active. Waiting for data (Topic: 'transformed_hand_frame')...")
+    print("Subscribers active. Waiting for data (Topic: 'transformed_hand_coords')...")
 
     try:
         while True:
