@@ -1,30 +1,36 @@
+import socket
 import zmq
-import time
 
-def run_relay():
+def run_hybrid_relay():
+    # 1. Setup ZMQ to talk to your Teleop Script
     context = zmq.Context()
+    
+    # We use PUSH because your detectors are using PULL
+    # We CONNECT because your detectors are BINDING to 9095/9096
+    right_push = context.socket(zmq.PUSH)
+    right_push.connect("tcp://127.0.0.1:9095")
+    
+    left_push = context.socket(zmq.PUSH)
+    left_push.connect("tcp://127.0.0.1:9096")
 
-    # 1. Listen to the Oculus Quest (Port 8095)
-    # This script BINDS here because only one thing can listen to 8095.
-    quest_receiver = context.socket(zmq.PULL)
-    quest_receiver.bind("tcp://*:8095")
+    # 2. Setup UDP to talk to the Oculus Quest
+    udp_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        udp_sock.bind(('0.0.0.0', 8095))
+        print("Success: Listening for Quest UDP data on 8095")
+    except Exception as e:
+        print(f"Error: Could not bind to 8095. Is another script running? {e}")
+        return
 
-    # 2. Forward to your Detectors (Ports 9095 and 9096)
-    # This script CONNECTS to your teleop processes.
-    right_hand_forwarder = context.socket(zmq.PUSH)
-    right_hand_forwarder.connect("tcp://127.0.0.1:9095")
-
-    left_hand_forwarder = context.socket(zmq.PUSH)
-    left_hand_forwarder.connect("tcp://127.0.0.1:9096")
-
-    print("Relay started: Quest(8095) -> Right(9095) & Left(9096)")
+    print("Forwarding Quest(UDP:8095) -> Right(ZMQ:9095) & Left(ZMQ:9096)")
 
     while True:
-        # Get data from Quest
-        message = quest_receiver.recv()
-        # Send to both internal ports
-        right_hand_forwarder.send(message)
-        left_hand_forwarder.send(message)
+        # Receive raw bytes from Quest
+        data, addr = udp_sock.recvfrom(4096)
+        
+        # Forward via ZMQ to both detectors
+        right_push.send(data)
+        left_push.send(data)
 
 if __name__ == "__main__":
-    run_relay()
+    run_hybrid_relay()
