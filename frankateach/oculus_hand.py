@@ -16,6 +16,8 @@ class OculusVRHandDetector():
         self.raw_keypoint_socket = create_pull_socket(INTERNAL_IP, oculus_port)
         self.button_keypoint_socket = create_pull_socket(INTERNAL_IP, button_port)
         self.teleop_reset_socket = create_pull_socket(INTERNAL_IP, teleop_reset_port)
+        print(button_port)
+        print(teleop_reset_port)
         
          # ZMQ Keypoint publisher
         self.hand_keypoint_publisher = ZMQKeypointPublisher(
