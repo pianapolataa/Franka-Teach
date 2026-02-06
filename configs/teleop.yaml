@@ -28,9 +28,9 @@ oculus_hand_detector:
   _target_: frankateach.oculus_hand.OculusVRHandDetector
   oculus_port: ${oculus_port} # Get raw keypoint
   keypoint_pub_port: ${keypoint_port} # keypoint publish port
-  button_port: 9095
+  button_port: 8095
   button_publish_port: ${resolution_button_publish_port}
-  teleop_reset_port: 9100
+  teleop_reset_port: 8100
   teleop_reset_publish_port: ${teleop_reset_publish_port}
 
 oculus_hand_detector_left:
