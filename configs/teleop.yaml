@@ -30,7 +30,7 @@ oculus_hand_detector:
   keypoint_pub_port: ${keypoint_port} # keypoint publish port
   button_port: ${resolution_button_port}
   button_publish_port: ${resolution_button_publish_port}
-  teleop_reset_port: ${teleop_reset_port}
+  teleop_reset_port: 9100
   teleop_reset_publish_port: ${teleop_reset_publish_port}
 
 oculus_hand_detector_left:
