@@ -1,34 +1,30 @@
 import zmq
-import threading
+import time
 
-def zmq_relay(source_port, target_ports):
+def run_relay():
     context = zmq.Context()
-    
-    # This socket "steals" the Quest's data from port 8095
-    # (Assuming the Quest is pushing raw data or using a compatible ZMQ setup)
-    frontend = context.socket(zmq.PULL)
-    frontend.bind(f"tcp://*:{source_port}")
-    
-    # These sockets send that data to your hand detectors
-    backend_sockets = []
-    for port in target_ports:
-        s = context.socket(zmq.PUSH)
-        s.bind(f"tcp://*:{port}") # Your teleop code will CONNECT to these
-        backend_sockets.append(s)
-    
-    print(f"ZMQ Relay Active: {source_port} -> {target_ports}")
-    
+
+    # 1. Listen to the Oculus Quest (Port 8095)
+    # This script BINDS here because only one thing can listen to 8095.
+    quest_receiver = context.socket(zmq.PULL)
+    quest_receiver.bind("tcp://*:8095")
+
+    # 2. Forward to your Detectors (Ports 9095 and 9096)
+    # This script CONNECTS to your teleop processes.
+    right_hand_forwarder = context.socket(zmq.PUSH)
+    right_hand_forwarder.connect("tcp://127.0.0.1:9095")
+
+    left_hand_forwarder = context.socket(zmq.PUSH)
+    left_hand_forwarder.connect("tcp://127.0.0.1:9096")
+
+    print("Relay started: Quest(8095) -> Right(9095) & Left(9096)")
+
     while True:
-        msg = frontend.recv()
-        for s in backend_sockets:
-            s.send(msg)
+        # Get data from Quest
+        message = quest_receiver.recv()
+        # Send to both internal ports
+        right_hand_forwarder.send(message)
+        left_hand_forwarder.send(message)
 
 if __name__ == "__main__":
-    # Relay Button data
-    threading.Thread(target=zmq_relay, args=(8095, [9095, 9096]), daemon=True).start()
-    # Relay Reset data
-    threading.Thread(target=zmq_relay, args=(8100, [9100, 9101]), daemon=True).start()
-    
-    while True:
-        import time
-        time.sleep(1)
+    run_relay()
