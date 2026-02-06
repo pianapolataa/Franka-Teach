@@ -6,7 +6,7 @@ def simple_receiver():
     socket = context.socket(zmq.PULL)
     
     # We BIND here because your code expects to "own" the port
-    port = 9095
+    port = 8095
     try:
         socket.bind(f"tcp://127.0.0.1:{port}")
         print(f"Successfully bound to port {port}. Waiting for data...")
