@@ -3,8 +3,8 @@ from frankateach.network import create_pull_socket
 
 def test_internal_ports():
     # These are the ports the Splitter is pushing TO
-    button_port = 9095
-    reset_port = 9100
+    button_port = 8093
+    reset_port = 8094
     localhost = "172.24.71.240"
 
     print(f"Binding to Internal Button Port: {button_port}")
@@ -16,10 +16,10 @@ def test_internal_ports():
     while True:
         try:
             btn_msg = button_sock.recv()
-            print(f">>> RECEIVED ON 9095: {btn_msg}")
+            print(f">>> RECEIVED ON 8093: {btn_msg}")
 
             rst_msg = reset_sock.recv()
-            print(f">>> RECEIVED ON 9100: {rst_msg}")
+            print(f">>> RECEIVED ON 8094: {rst_msg}")
 
         except KeyboardInterrupt:
             print("\nStopping test.")
