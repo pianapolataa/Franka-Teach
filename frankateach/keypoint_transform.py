@@ -12,9 +12,9 @@ class TransformHandPositionCoords():
         notify_component_start('keypoint position transform')
         
         # Initializing the subscriber for right hand keypoints
-        self.original_keypoint_subscriber = ZMQKeypointSubscriber(INTERNAL_IP, keypoint_port, 'right')
+        self.original_keypoint_subscriber = ZMQKeypointSubscriber(LOCALHOST, keypoint_port, 'right')
         # Initializing the publisher for transformed right hand keypoints
-        self.transformed_keypoint_publisher = ZMQKeypointPublisher(INTERNAL_IP, transformation_port)
+        self.transformed_keypoint_publisher = ZMQKeypointPublisher(LOCALHOST, transformation_port)
         # Timer
         self.timer = FrequencyTimer(VR_FREQ)
         # Keypoint indices for knuckles
