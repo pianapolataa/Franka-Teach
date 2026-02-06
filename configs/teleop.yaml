@@ -1,9 +1,8 @@
 # Ports SHOULD NOT BE CHANGED (defined in Unity)
-oculus_port: 8087 # Get raw keypoint
+oculus_port: 8110 # Get raw keypoint
 oculus_port_left: 8110
 resolution_button_port:  8095
 teleop_reset_port: 8100
-oculus_graph_port: 15001
 
 keypoint_port: 8078 
 keypoint_port_left: 8077
@@ -51,7 +50,7 @@ hand_transform:
 hand_transform_left:
   _target_: frankateach.keypoint_transform.TransformHandPositionCoords
   keypoint_port: ${keypoint_port_left}  # keypoint receive port
-  transformation_port: ${transformed_position_keypoint_port} # publish transformed keypoint
+  transformation_port: ${transformed_position_keypoint_port_left} # publish transformed keypoint
   moving_average_limit: 1
 
 stick_operators:
