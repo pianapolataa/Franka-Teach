@@ -1,27 +1,24 @@
-import zmq
+import socket
 
-def simple_receiver():
-    context = zmq.Context()
-    # Use a PULL socket because that's what your detector uses
-    socket = context.socket(zmq.PULL)
-    
-    # We BIND here because your code expects to "own" the port
+def test_raw_udp():
     port = 8087
+    # Create a standard UDP socket
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    
     try:
-        socket.bind(f"tcp://127.0.0.1:{port}")
-        print(f"Successfully bound to port {port}. Waiting for data...")
-    except zmq.ZMQError as e:
-        print(f"Error: Could not bind to {port}. Is your teleop script already running? {e}")
+        # Bind to ALL interfaces to catch the Quest data
+        sock.bind(('0.0.0.0', port))
+        print(f"Listening for RAW UDP on port {port}...")
+    except Exception as e:
+        print(f"Could not bind: {e}")
         return
 
     while True:
         try:
-            # Wait for data
-            message = socket.recv()
-            print(f"Received: {message}")
+            data, addr = sock.recvfrom(4096)
+            print(f"RECEIVED from {addr}: {data[:50]}...") # Print first 50 chars
         except KeyboardInterrupt:
-            print("\nStopping...")
             break
 
 if __name__ == "__main__":
-    simple_receiver()
+    test_raw_udp()
