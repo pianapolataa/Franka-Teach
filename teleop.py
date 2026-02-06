@@ -52,7 +52,7 @@ def main(cfg):
         oculus_process = Process(target=start_oculus_stick, args=(cfg,))
         teleop_process = Process(target=start_teleop_stick, args=(cfg,))
     else:
-        # oculus_process = Process(target=start_oculus_hand, args=(cfg,))
+        oculus_process = Process(target=start_oculus_hand, args=(cfg,))
         oculus_process_left = Process(target=start_oculus_hand_left, args=(cfg,))
         # transform_process = Process(target=start_hand_transform, args=(cfg,))
         # teleop_process_left = Process(target=start_teleop_arm_left, args=(cfg,))
@@ -62,7 +62,7 @@ def main(cfg):
             processes.append(ruka_process)
         # processes.append(transform_process)
     
-    # processes.append(oculus_process)
+    processes.append(oculus_process)
     processes.append(oculus_process_left)
     # processes.append(teleop_process_left)
     # processes.append(teleop_process_right)
