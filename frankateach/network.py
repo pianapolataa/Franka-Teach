@@ -31,7 +31,7 @@ def create_pull_socket(host, port):
     context = zmq.Context()
     socket = context.socket(zmq.PULL)
     socket.setsockopt(zmq.CONFLATE, 1)
-    socket.connect("tcp://{}:{}".format(host, port))
+    socket.bind("tcp://{}:{}".format(host, port))
     return socket
 
 
