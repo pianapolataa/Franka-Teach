@@ -1,36 +1,41 @@
-import socket
 import zmq
+import threading
+from frankateach.network import create_pull_socket
+from frankateach.constants import INTERNAL_IP
 
-def run_relay():
+def relay_worker(source_port, target_ports):
     context = zmq.Context()
-
-    # 1. Setup ZMQ to talk to your Teleop Script
-    # We CONNECT because your Teleop script is BINDING to 9095 and 9096
-    right_push = context.socket(zmq.PUSH)
-    right_push.connect("tcp://127.0.0.1:9095")
     
-    left_push = context.socket(zmq.PUSH)
-    left_push.connect("tcp://127.0.0.1:9096")
-
-    # 2. Setup RAW UDP to talk to the Oculus Quest App
-    # We use a standard socket because Unity/Oculus sends raw UDP
-    udp_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    try:
-        udp_sock.bind(('0.0.0.0', 8095))
-        print("Successfully listening for Quest UDP on 8095")
-    except Exception as e:
-        print(f"Error: Could not bind to 8095. Make sure no other script is using it: {e}")
-        return
-
-    print("Relay Active: Quest(UDP:8095) -> Right(ZMQ:9095) & Left(ZMQ:9096)")
-
+    # 1. Receive from the Quest (Port 8095 or 8100)
+    # This script BINDS to the Oculus ports
+    receiver = create_pull_socket(INTERNAL_IP, source_port)
+    
+    # 2. Setup Pushers for the Teleop Code
+    # We use PUSH because the teleop script is a PULL socket
+    # We BIND to the new ports so teleop can connect/bind as usual
+    pushers = []
+    for port in target_ports:
+        pusher = context.socket(zmq.PUSH)
+        pusher.bind(f"tcp://127.0.0.1:{port}")
+        pushers.append(pusher)
+    
+    print(f"Relay Active: {source_port} -> {target_ports}")
+    
     while True:
-        # Receive the raw data from the Quest
-        data, addr = udp_sock.recvfrom(4096)
-        
-        # Wrap it in a ZMQ message and send it to your detectors
-        right_push.send(data)
-        left_push.send(data)
+        # Get data from Quest
+        message = receiver.recv()
+        # Send a copy to every target port
+        for p in pushers:
+            p.send(message)
 
 if __name__ == "__main__":
-    run_relay()
+    # Split Button Port 8095 -> 9095 (Right Hand) and 9096 (Left Hand)
+    t1 = threading.Thread(target=relay_worker, args=(8095, [9095, 9096]))
+    
+    # Split Reset Port 8100 -> 9100 (Right Hand) and 9101 (Left Hand)
+    t2 = threading.Thread(target=relay_worker, args=(8100, [9100, 9101]))
+    
+    t1.start()
+    t2.start()
+    
+    print("Splitter is running. Update your YAML to use ports 9095-9101.")
