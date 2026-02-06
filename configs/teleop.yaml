@@ -1,5 +1,5 @@
 # Ports SHOULD NOT BE CHANGED (defined in Unity)
-oculus_port: 8110 # Get raw keypoint
+oculus_port: 8087 # Get raw keypoint
 oculus_port_left: 8110
 resolution_button_port:  8095
 teleop_reset_port: 8100
@@ -7,7 +7,9 @@ teleop_reset_port: 8100
 keypoint_port: 8078 
 keypoint_port_left: 8077
 resolution_button_publish_port: 8090
+resolution_button_publish_port_left: 8091
 teleop_reset_publish_port: 8092
+teleop_reset_publish_port_left: 8097
 transformed_position_keypoint_port: 8093
 transformed_position_keypoint_port_left: 8094
 
@@ -27,19 +29,19 @@ oculus_hand_detector:
   _target_: frankateach.oculus_hand.OculusVRHandDetector
   oculus_port: ${oculus_port} # Get raw keypoint
   keypoint_pub_port: ${keypoint_port} # keypoint publish port
-  button_port: ${resolution_button_port}
+  button_port: 9095
   button_publish_port: ${resolution_button_publish_port}
-  teleop_reset_port: ${teleop_reset_port}
+  teleop_reset_port: 9100
   teleop_reset_publish_port: ${teleop_reset_publish_port}
 
 oculus_hand_detector_left:
   _target_: frankateach.oculus_hand.OculusVRHandDetector
   oculus_port: ${oculus_port_left} # Get raw keypoint
   keypoint_pub_port: ${keypoint_port_left} # keypoint publish port
-  button_port: ${resolution_button_port}
-  button_publish_port: ${resolution_button_publish_port}
-  teleop_reset_port: ${teleop_reset_port}
-  teleop_reset_publish_port: ${teleop_reset_publish_port}
+  button_port: 9096
+  button_publish_port: ${resolution_button_publish_port_left}
+  teleop_reset_port: 9101
+  teleop_reset_publish_port: ${teleop_reset_publish_port_left}
 
 hand_transform:
   _target_: frankateach.keypoint_transform.TransformHandPositionCoords
@@ -73,8 +75,8 @@ arm_operators_left:
     _target_: frankateach.teleoperator_arm.FrankaArmOperator
     transformed_keypoints_port: ${transformed_position_keypoint_port_left} # transformed keypoint port
     use_filter: False
-    arm_resolution_port: ${resolution_button_publish_port} 
-    teleoperation_reset_port: ${teleop_reset_publish_port}
+    arm_resolution_port: ${resolution_button_publish_port_left} 
+    teleoperation_reset_port: ${teleop_reset_publish_port_left}
     init_gripper_state: ${init_gripper_state} # open, close
     home_offset: ${home_offset} # null, [x, y, z] in meters
   
@@ -89,93 +91,3 @@ manus_streamer:
     hand_type: "right"
     frequency: 100
     host: 
-
-#   # --- Ports Defined in Unity (Incoming from Quest) ---
-# oculus_port: 8087 
-# oculus_port_left: 8110
-# resolution_button_port: 8095
-# teleop_reset_port: 8100
-
-# # --- Internal Relay Ports (To solve the "Address already in use" error) ---
-# # Use the Relay script to forward 8095 to these two:
-# button_port_right_internal: 9095
-# button_port_left_internal: 9096
-# # Use the Relay script to forward 8100 to these two:
-# reset_port_right_internal: 9100
-# reset_port_left_internal: 9101
-
-# # --- Communication Ports (Publishing processed data) ---
-# keypoint_port: 8078 
-# keypoint_port_left: 8077
-# oculus_graph_port: 15001
-# VR_CONTROLLER_STATE_PORT: 8889
-
-# # UNIQUE Publish ports for each arm
-# resolution_button_publish_port: 8090
-# resolution_button_publish_port_left: 8091  # New
-# teleop_reset_publish_port: 8092
-# teleop_reset_publish_port_left: 8098       # New
-
-# transformed_position_keypoint_port: 8093
-# transformed_position_keypoint_port_left: 8094
-
-# # --- Global Settings ---
-# init_gripper_state: open
-# teleop_mode: robot
-# home_offset: null
-# use_oculus_stick: false
-# use_hand_tracking: false
-
-# # --- Component Instantiation ---
-
-# oculus_stick_detector:
-#   _target_: frankateach.oculus_stick.OculusVRStickDetector
-#   port: ${VR_CONTROLLER_STATE_PORT}
-
-# oculus_hand_detector:
-#   _target_: frankateach.oculus_hand.OculusVRHandDetector
-#   oculus_port: ${oculus_port}
-#   keypoint_pub_port: ${keypoint_port}
-#   button_port: ${button_port_right_internal}
-#   button_publish_port: ${resolution_button_publish_port}
-#   teleop_reset_port: ${reset_port_right_internal}
-#   teleop_reset_publish_port: ${teleop_reset_publish_port}
-
-# oculus_hand_detector_left:
-#   _target_: frankateach.oculus_hand.OculusVRHandDetector
-#   oculus_port: ${oculus_port_left}
-#   keypoint_pub_port: ${keypoint_port_left}
-#   button_port: ${button_port_left_internal}
-#   button_publish_port: ${resolution_button_publish_port_left}
-#   teleop_reset_port: ${reset_port_left_internal}
-#   teleop_reset_publish_port: ${teleop_reset_publish_port_left}
-
-# hand_transform:
-#   _target_: frankateach.keypoint_transform.TransformHandPositionCoords
-#   keypoint_port: ${keypoint_port}
-#   transformation_port: ${transformed_position_keypoint_port}
-#   moving_average_limit: 1
-
-# hand_transform_left:
-#   _target_: frankateach.keypoint_transform.TransformHandPositionCoords
-#   keypoint_port: ${keypoint_port_left}
-#   transformation_port: ${transformed_position_keypoint_port_left}
-#   moving_average_limit: 1
-
-# arm_operators:
-#     _target_: frankateach.teleoperator_arm.FrankaArmOperator
-#     transformed_keypoints_port: ${transformed_position_keypoint_port}
-#     use_filter: False
-#     arm_resolution_port: ${resolution_button_publish_port} 
-#     teleoperation_reset_port: ${teleop_reset_publish_port}
-#     init_gripper_state: ${init_gripper_state}
-#     home_offset: ${home_offset}
-
-# arm_operators_left:
-#     _target_: frankateach.teleoperator_arm.FrankaArmOperator
-#     transformed_keypoints_port: ${transformed_position_keypoint_port_left}
-#     use_filter: False
-#     arm_resolution_port: ${resolution_button_publish_port_left} 
-#     teleoperation_reset_port: ${teleop_reset_publish_port_left}
-#     init_gripper_state: ${init_gripper_state}
-#     home_offset: ${home_offset}
