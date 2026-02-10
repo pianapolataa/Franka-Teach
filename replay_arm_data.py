@@ -50,7 +50,8 @@ class ArmReplayer:
         first = True
         
         for row in replay_data:
-            if first and row[0] < 0.47:
+            print(first, row[0])
+            if first == True and row[0] < 0.47:
                 first = False
                 continue
             loop_start = time.time()
