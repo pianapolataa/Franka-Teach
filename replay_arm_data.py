@@ -46,7 +46,7 @@ class ArmReplayer:
             print("Error: Trajectory is shorter than 100,000 steps. Nothing to replay.")
             return
         # TRAJECTORY REPLAY
-        dt = 0.01 
+        dt = 0.005
         
         for row in replay_data:
             loop_start = time.time()
