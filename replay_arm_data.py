@@ -9,10 +9,8 @@ from frankateach.constants import LOCALHOST, CONTROL_PORT
 
 
 class ArmReplayer:
-    def __init__(self, storage_path):
-        self.storage_path = Path(storage_path)
+    def __init__(self):
         self.load_data()
-        # Socket to send actions to the Franka server
         self.action_socket = create_request_socket(LOCALHOST, CONTROL_PORT)
 
         # Reset robot at the start
@@ -29,7 +27,7 @@ class ArmReplayer:
     def load_data(self):
         # Load the numpy array: expected shape (N, 7) 
         # [pos_x, pos_y, pos_z, quat_x, quat_y, quat_z, quat_w]
-        self.arm_trajectory = np.load(self.storage_path / "arm_write_trajectory.npy")
+        self.arm_trajectory = np.load("arm_write_trajectory.npy")
         print(f"Loaded trajectory with {self.arm_trajectory.shape[0]} frames.")
 
     def replay(self):
@@ -67,7 +65,5 @@ class ArmReplayer:
 
 
 if __name__ == "__main__":
-    demo_path = "data/demonstration_0"
-
-    replayer = ArmReplayer(demo_path)
+    replayer = ArmReplayer()
     replayer.replay()
