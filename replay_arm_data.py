@@ -54,14 +54,14 @@ class ArmReplayer:
             if first == True and row[0] < 0.47: continue
             first = False
             loop_start = time.time()
-            print(1)
+            print(row)
             
             target_pos = row[:3]
             target_quat = row[3:]
             action = FrankaAction(
                 pos=target_pos.astype(np.float32),
                 quat=target_quat.astype(np.float32),
-                gripper=1.0, 
+                gripper=-1, 
                 reset=False,
                 timestamp=time.time(),
             )
