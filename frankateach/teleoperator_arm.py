@@ -570,6 +570,7 @@ class FrankaArmOperator:
         )
         self.start_teleop = True
         self.init_affine = None
+        self.recorded_data = []
 
         # if  home_offset is None:
         #     home_offset = [-0.22, 0.0, 0.1]
@@ -741,9 +742,15 @@ class FrankaArmOperator:
 
         if self.start_teleop:
             self.action_socket.send(b"get_state")
-            robot_state_before_action = pickle.loads(self.action_socket.recv())
-            robot_state_before_action.start_teleop = self.start_teleop
-            print(robot_state_before_action.pos, robot_state_before_action.quat)
+            robot_state = pickle.loads(self.action_socket.recv())
+            robot_state.start_teleop = self.start_teleop
+
+            if robot_state != b"state_error":
+                # Combine pos (3,) and quat (4,) into one row (7,)
+                current_pose = np.concatenate([robot_state.pos, robot_state.quat])
+                self.recorded_data.append(current_pose)
+                
+                print(f"Recorded: {robot_state.pos}{robot_state.quat}")
 
     def stream(self):
         notify_component_start("Franka teleoperator control")
@@ -756,6 +763,12 @@ class FrankaArmOperator:
         except KeyboardInterrupt:
             pass
         finally:
+            if len(self.recorded_data) > 0:
+                data_array = np.array(self.recorded_data)
+                np.save("arm_write_trajectory.npy", data_array)
+                print(f"Success! Saved {data_array.shape[0]} frames to arm_write_trajectory.npy")
+            else:
+                print("No data recorded.")
             self._transformed_arm_keypoint_subscriber.stop()
             self.action_socket.close()
 
