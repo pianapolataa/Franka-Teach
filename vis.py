@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-def save_trajectory_plot(file_path="manual_trajectory.npy", output_name="arm_write_trajectory.png"):
+def save_trajectory_plot(file_path="arm_write_trajectory.png"):
     # Load the recorded data
     try:
         data = np.load(file_path)
@@ -42,8 +42,8 @@ def save_trajectory_plot(file_path="manual_trajectory.npy", output_name="arm_wri
     plt.tight_layout(rect=[0, 0.03, 1, 0.95])
     
     # Save as the requested filename
-    plt.savefig(output_name, dpi=300)
-    print(f"Visualization saved to: {output_name}")
+    plt.savefig("states_arm", dpi=300)
+    print(f"Visualization saved to: states_arm")
     plt.close()
 
 if __name__ == "__main__":
