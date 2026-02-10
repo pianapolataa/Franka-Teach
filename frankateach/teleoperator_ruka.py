@@ -258,7 +258,6 @@ class RukaOperator:
 
         if self.start_teleop:
             curr_pos = self.handler.hand.read_pos()
-            print(motor_positions)
             motor_positions = [1872.99, 2540.,   1617.,   1860.,   1792.78, 2900.,   1700, 1903, 1817, 2990, 2959, 1444,  765, 1414, 1990 ,1630]
             move_to_pos(curr_pos=curr_pos, des_pos=motor_positions, hand=self.handler.hand, traj_len=15)
   
