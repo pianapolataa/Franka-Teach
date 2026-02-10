@@ -33,31 +33,31 @@ class ArmReplayer:
         print(f"Loaded trajectory with {self.arm_trajectory.shape[0]} frames.")
 
     def replay(self):
-        print("Starting arm replay...")
+        print("Starting arm replay with subsampling...")
         if self.arm_trajectory is None or len(self.arm_trajectory) == 0:
             print("No actions to replay.")
             return
-
-        # Slice the trajectory to skip the first 100,000 steps
-        # This is much more efficient than checking an 'if' condition inside the loop
-        replay_data = self.arm_trajectory[100000:]
-
+        
+        replay_data = self.arm_trajectory[100000::10]
         if len(replay_data) == 0:
-            print("Error: Trajectory is shorter than 100,000 steps. Nothing to replay.")
+            print("Error: No data left after trimming and subsampling.")
             return
-        # TRAJECTORY REPLAY
-        dt = 0.005
+
         first = True
         
         for row in replay_data:
-            # print(first, row[0])
-            if first == True and row[0] < 0.47: continue
-            first = False
+            if first:
+                if row[0] < 0.47: 
+                    continue
+                else:
+                    first = False
+                    print("Threshold met! Replaying movement...")
+
             loop_start = time.time()
-            print(row)
             
             target_pos = row[:3]
             target_quat = row[3:]
+            
             action = FrankaAction(
                 pos=target_pos.astype(np.float32),
                 quat=target_quat.astype(np.float32),
@@ -66,13 +66,9 @@ class ArmReplayer:
                 timestamp=time.time(),
             )
 
+            # Send and wait for server response (clears the buffer)
             self.action_socket.send(bytes(pickle.dumps(action, protocol=-1)))
             _ = self.action_socket.recv()
-
-            # # Maintain timing consistency (100Hz)
-            # elapsed = time.time() - loop_start
-            # if elapsed < dt:
-            #     time.sleep(dt - elapsed)
                 
         print("Replay finished.")
         self.action_socket.close()
