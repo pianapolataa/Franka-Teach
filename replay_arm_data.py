@@ -49,6 +49,7 @@ class ArmReplayer:
         dt = 0.005
         
         for row in replay_data:
+            if row[0] < 0.47: continue
             loop_start = time.time()
             
             target_pos = row[:3]
