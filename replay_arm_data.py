@@ -47,9 +47,12 @@ class ArmReplayer:
             return
         # TRAJECTORY REPLAY
         dt = 0.005
+        first = True
         
         for row in replay_data:
-            if row[0] < 0.47: continue
+            if first and row[0] < 0.47:
+                first = False
+                continue
             loop_start = time.time()
             
             target_pos = row[:3]
