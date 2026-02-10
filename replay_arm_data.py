@@ -54,6 +54,7 @@ class ArmReplayer:
             if first == True and row[0] < 0.47: continue
             first = False
             loop_start = time.time()
+            print(1)
             
             target_pos = row[:3]
             target_quat = row[3:]
