@@ -68,10 +68,10 @@ class ArmReplayer:
             self.action_socket.send(bytes(pickle.dumps(action, protocol=-1)))
             _ = self.action_socket.recv()
 
-            # Maintain timing consistency (100Hz)
-            elapsed = time.time() - loop_start
-            if elapsed < dt:
-                time.sleep(dt - elapsed)
+            # # Maintain timing consistency (100Hz)
+            # elapsed = time.time() - loop_start
+            # if elapsed < dt:
+            #     time.sleep(dt - elapsed)
                 
         print("Replay finished.")
         self.action_socket.close()
