@@ -9,8 +9,10 @@ from frankateach.constants import LOCALHOST, CONTROL_PORT
 
 
 class ArmReplayer:
-    def __init__(self):
+    def __init__(self, storage_path):
+        self.storage_path = Path(storage_path)
         self.load_data()
+        # Socket to send actions to the Franka server
         self.action_socket = create_request_socket(LOCALHOST, CONTROL_PORT)
 
         # Reset robot at the start
@@ -65,5 +67,7 @@ class ArmReplayer:
 
 
 if __name__ == "__main__":
-    replayer = ArmReplayer()
+    demo_path = "data/demonstration_0"
+
+    replayer = ArmReplayer(demo_path)
     replayer.replay()
