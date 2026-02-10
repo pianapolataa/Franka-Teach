@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-def save_trajectory_plot(file_path="arm_write_trajectory.png"):
+def save_trajectory_plot(file_path="arm_write_trajectory.npy"):
     # Load the recorded data
     try:
         data = np.load(file_path)
