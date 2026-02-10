@@ -21,9 +21,9 @@ hand_thread = threading.Thread(target=run_hand, daemon=True)
 
 # === Start both simultaneously ===
 arm_thread.start()
-hand_thread.start()
+# hand_thread.start()
 
 arm_thread.join()
-hand_thread.join()
+# hand_thread.join()
 
 print("Both replays finished.")
