@@ -38,7 +38,7 @@ class ArmReplayer:
             print("No actions to replay.")
             return
         
-        replay_data = self.arm_trajectory[100000::17]
+        replay_data = self.arm_trajectory[100000::27]
         if len(replay_data) == 0:
             print("Error: No data left after trimming and subsampling.")
             return

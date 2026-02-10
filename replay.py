@@ -7,7 +7,7 @@ from replay_ruka_data import HandReplayer
 print("[Init] Initializing ArmReplayer...")
 arm = ArmReplayer("replay_ready/demo_task")
 print("[Init] Initializing HandReplayer...")
-hand = HandReplayer("replay_ready/demo_task")
+# hand = HandReplayer("replay_ready/demo_task")
 print("[Init] Both replayers initialized. Starting replays...")
 
 def run_arm():
