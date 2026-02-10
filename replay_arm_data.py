@@ -37,14 +37,18 @@ class ArmReplayer:
         if self.arm_trajectory is None or len(self.arm_trajectory) == 0:
             print("No actions to replay.")
             return
-        # 2. TRAJECTORY REPLAY
-        # We use a frequency timer to maintain the 100Hz playback speed
+
+        # Slice the trajectory to skip the first 100,000 steps
+        # This is much more efficient than checking an 'if' condition inside the loop
+        replay_data = self.arm_trajectory[100000:]
+
+        if len(replay_data) == 0:
+            print("Error: Trajectory is shorter than 100,000 steps. Nothing to replay.")
+            return
+        # TRAJECTORY REPLAY
         dt = 0.01 
         
-        for row in self.arm_trajectory:
-            if np.allclose(row, [0.45442212, 0.03222251, 0.36761105, 0.94005555, 0.34075424, 0.01184287, 0.00646103]):
-                continue
-            print(1)
+        for row in replay_data:
             loop_start = time.time()
             
             target_pos = row[:3]
@@ -60,7 +64,7 @@ class ArmReplayer:
             self.action_socket.send(bytes(pickle.dumps(action, protocol=-1)))
             _ = self.action_socket.recv()
 
-            # Maintain timing consistency
+            # Maintain timing consistency (100Hz)
             elapsed = time.time() - loop_start
             if elapsed < dt:
                 time.sleep(dt - elapsed)
