@@ -42,6 +42,8 @@ class ArmReplayer:
         dt = 0.01 
         
         for row in self.arm_trajectory:
+            if row == [0.45442212, 0.03222251, 0.36761105, 0.94005555, 0.34075424, 0.01184287, 0.00646103]:
+                continue
             loop_start = time.time()
             
             target_pos = row[:3]
