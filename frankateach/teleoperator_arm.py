@@ -743,7 +743,7 @@ class FrankaArmOperator:
             self.action_socket.send(b"get_state")
             robot_state_before_action = pickle.loads(self.action_socket.recv())
             robot_state_before_action.start_teleop = self.start_teleop
-            print(robot_state_before_action[:7])
+            print(robot_state_before_action.pos, robot_state_before_action.quat)
 
     def stream(self):
         notify_component_start("Franka teleoperator control")
