@@ -1,36 +1,51 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-def visualize_trajectory(file_path="arm_write_trajectory.npy"):
-    # Load the data
+def save_trajectory_plot(file_path="manual_trajectory.npy", output_name="arm_write_trajectory.png"):
+    # Load the recorded data
     try:
         data = np.load(file_path)
     except FileNotFoundError:
-        print(f"Error: {file_path} not found.")
+        print(f"Error: {file_path} not found. Ensure you have recorded a trajectory first.")
         return
 
-    # Create time axis (assuming 100Hz / 0.01s interval)
-    time_axis = np.linspace(0, len(data) * 0.01, len(data))
+    # Assuming 100Hz recording (0.01s intervals)
+    time_axis = np.arange(len(data)) * 0.01
 
-    fig, axs = plt.subplots(7, 1, figsize=(10, 15), sharex=True)
-    fig.suptitle(f'Franka Arm Trajectory: {file_path}', fontsize=16)
+    # Create 7 subplots (3 for Position, 4 for Orientation)
+    fig, axs = plt.subplots(7, 1, figsize=(12, 18), sharex=True)
+    fig.suptitle(f'Franka Arm Trajectory Visualization\nFile: {file_path}', fontsize=16, fontweight='bold')
 
-    labels = ['Pos X', 'Pos Y', 'Pos Z', 'Quat X', 'Quat Y', 'Quat Z', 'Quat W']
-    colors = ['r', 'g', 'b', 'c', 'm', 'y', 'k']
+    # Define labels and distinct colors for each dimension
+    labels = ['Position X (m)', 'Position Y (m)', 'Position Z (m)', 
+              'Quat X', 'Quat Y', 'Quat Z', 'Quat W']
+    colors = ['#e63946', '#2a9d8f', '#457b9d', '#f4a261', '#7209b7', '#4cc9f0', '#2b2d42']
+
+    # Your specific "Home" values to visualize as reference lines
+    home_vals = [0.45442212, 0.03222251, 0.36761105, 0.94005555, 0.34075424, 0.01184287, 0.00646103]
 
     for i in range(7):
-        axs[i].plot(time_axis, data[:, i], color=colors[i], linewidth=1.5)
-        axs[i].set_ylabel(labels[i])
-        axs[i].grid(True, alpha=0.3)
+        # Plot the actual recorded data
+        axs[i].plot(time_axis, data[:, i], color=colors[i], linewidth=2, label='Recorded Path')
         
-        # Highlight the specific value you were trying to skip earlier if it appears
-        # target_val = [0.4544, 0.0322, 0.3676, 0.9400, 0.3407, 0.0118, 0.0064]
-        # axs[i].axhline(y=target_val[i], color='gray', linestyle='--', alpha=0.5)
+        # Plot the reference line for the home position
+        axs[i].axhline(y=home_vals[i], color='black', linestyle='--', alpha=0.4, label='Home/Static Ref')
+        
+        axs[i].set_ylabel(labels[i], fontsize=10, fontweight='bold')
+        axs[i].grid(True, which='both', linestyle=':', alpha=0.7)
+        axs[i].legend(loc='upper right', fontsize='small')
 
-    axs[-1].set_xlabel('Time (seconds)')
-    
+    # Set the x-axis label only on the bottom plot
+    axs[-1].set_xlabel('Time (seconds)', fontsize=12, fontweight='bold')
+
+    # Adjust layout to make room for titles and labels
     plt.tight_layout(rect=[0, 0.03, 1, 0.95])
-    plt.show()
+    
+    # Save as the requested filename
+    plt.savefig(output_name, dpi=300)
+    print(f"Visualization saved to: {output_name}")
+    plt.close()
 
 if __name__ == "__main__":
-    visualize_trajectory()
+    # Ensure the script runs using the data you recorded earlier
+    save_trajectory_plot()
