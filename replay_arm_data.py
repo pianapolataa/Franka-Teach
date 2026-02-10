@@ -47,7 +47,7 @@ class ArmReplayer:
         
         for row in replay_data:
             if first:
-                if row[0] < 0.46: 
+                if row[2] > 0.35: 
                     continue
                 else:
                     first = False
