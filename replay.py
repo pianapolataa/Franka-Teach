@@ -7,7 +7,7 @@ from replay_ruka_data import HandReplayer
 print("[Init] Initializing ArmReplayer...")
 arm = ArmReplayer("replay_ready/demo_task")
 print("[Init] Initializing HandReplayer...")
-# hand = HandReplayer("replay_ready/demo_task")
+hand = HandReplayer("replay_ready/demo_task")
 print("[Init] Both replayers initialized. Starting replays...")
 
 def run_arm():
@@ -21,9 +21,9 @@ hand_thread = threading.Thread(target=run_hand, daemon=True)
 
 # === Start both simultaneously ===
 arm_thread.start()
-# hand_thread.start()
+hand_thread.start()
 
 arm_thread.join()
-# hand_thread.join()
+hand_thread.join()
 
 print("Both replays finished.")
