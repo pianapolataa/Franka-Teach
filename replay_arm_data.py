@@ -27,37 +27,41 @@ class ArmReplayer:
         _ = pickle.loads(self.action_socket.recv())
 
     def load_data(self):
-        # Load commanded states with timestamps
-        with open(self.storage_path / "commanded_states.pkl", "rb") as f:
-            self.arm_actions = pickle.load(f)
+        # Load the numpy array: expected shape (N, 7) 
+        # [pos_x, pos_y, pos_z, quat_x, quat_y, quat_z, quat_w]
+        self.arm_trajectory = np.load(self.storage_path / "arm_write_trajectory.npy")
+        print(f"Loaded trajectory with {self.arm_trajectory.shape[0]} frames.")
 
     def replay(self):
-        """Replay arm actions respecting original timestamps."""
         print("Starting arm replay...")
-
-        if not self.arm_actions:
+        if self.arm_trajectory is None or len(self.arm_trajectory) == 0:
             print("No actions to replay.")
             return
+        # 2. TRAJECTORY REPLAY
+        # We use a frequency timer to maintain the 100Hz playback speed
+        dt = 0.01 
+        
+        for row in self.arm_trajectory:
+            loop_start = time.time()
+            
+            target_pos = row[:3]
+            target_quat = row[3:]
+            action = FrankaAction(
+                pos=target_pos.astype(np.float32),
+                quat=target_quat.astype(np.float32),
+                gripper=1.0, 
+                reset=False,
+                timestamp=time.time(),
+            )
 
-        # Start from first timestamp
-        start_time = self.arm_actions[0]['timestamp']
-        replay_start = time.time()
-
-        for entry in self.arm_actions:
-            action = entry['state']
-            original_timestamp = entry['timestamp']
-
-            # Calculate how long to wait based on original timing
-            target_time = replay_start + (original_timestamp - start_time)
-            sleep_time = max(0, target_time - time.time())
-            time.sleep(sleep_time)
-
-            print(action.pos)
-            print(action.quat)
-            # Send action
             self.action_socket.send(bytes(pickle.dumps(action, protocol=-1)))
             _ = self.action_socket.recv()
 
+            # Maintain timing consistency
+            elapsed = time.time() - loop_start
+            if elapsed < dt:
+                time.sleep(dt - elapsed)
+                
         print("Replay finished.")
         self.action_socket.close()
 
