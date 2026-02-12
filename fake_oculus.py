@@ -22,7 +22,7 @@ socket_pause.connect(f"tcp://{TARGET_IP}:8100")
 
 print(f"Starting fake sender. Sending to {TARGET_IP}...")
 dummy_keypoints = np.ones(21 * 3).astype(np.float32).tobytes() 
-dummy_button = pickle.dumps({"button_pressed": True}, protocol=-1)
+dummy_button = pickle.dumps({"button_pressed": False}, protocol=-1)
 dummy_pause = pickle.dumps({"paused": False}, protocol=-1)
 
 count = 0
