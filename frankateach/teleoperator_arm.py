@@ -346,6 +346,7 @@ class FrankaArmOperator:
             
         print("first:", self.is_first_frame)
         if self.is_first_frame:
+            print('hi')
             self.cnt = 0
             wrist_state = self._get_hand_frame()
             while  wrist_state is None:
