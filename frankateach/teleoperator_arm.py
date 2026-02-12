@@ -288,8 +288,8 @@ class FrankaArmOperator:
     
     def get_pause_state_from_hand_keypoints(self):
         transformed_hand_coords= self._transformed_arm_keypoint_subscriber.recv_keypoints()
-        ring_distance = np.linalg.norm(transformed_hand_coords[OCULUS_JOINTS['ring'][-1]]- transformed_hand_coords[OCULUS_JOINTS['thumb'][-1]])
-        middle_distance = np.linalg.norm(transformed_hand_coords[OCULUS_JOINTS['middle'][-1]]- transformed_hand_coords[OCULUS_JOINTS['thumb'][-1]])
+        ring_distance = np.linalg.norm(transformed_hand_coords[3][4]- transformed_hand_coords[0][4])
+        middle_distance = np.linalg.norm(transformed_hand_coords[2][4]- transformed_hand_coords[0][4])
         thresh = 0.04
         pause_left= True
         if ring_distance < thresh or middle_distance < thresh:
