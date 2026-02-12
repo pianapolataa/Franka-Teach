@@ -3,7 +3,7 @@ import numpy as np
 # Network constants
 LOCALHOST = 'localhost' # '127.0.0.1' # '0.0.0.0' # "localhost"
 INTERNAL_IP =  "172.24.71.236" # "100.82.146.36" # "172.24.71.240"
-PUBLIC_IP = "100.82.146.36"
+PUBLIC_IP = "100.94.192.118"
 CAM_PORT = 10005
 VR_CONTROLLER_STATE_PORT = 8889
 STATE_PORT = 8900
