@@ -341,6 +341,7 @@ class FrankaArmOperator:
         elif arm_teleoperation_scale_mode == ARM_LOW_RESOLUTION:
             self.resolution_scale = 0.6
             
+        print("first:", self.is_first_frame)
         if self.is_first_frame:
             self.cnt = 0
             wrist_state = self._get_hand_frame()
