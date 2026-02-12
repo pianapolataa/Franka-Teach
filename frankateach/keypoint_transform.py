@@ -33,8 +33,8 @@ class TransformHandPositionCoords():
         else:
             data_type = 'relative'
         data_res = np.asanyarray(data[1:]).reshape(OCULUS_NUM_KEYPOINTS, 3)
-        # if self.hand == 'left':
-        #     data_res[:, 0] *= -1
+        if self.hand == 'left':
+            data_res[:, 0] *= -1
         return data_type, data_res
     
     # Function to find hand coordinates with respect to the wrist
@@ -117,8 +117,8 @@ class TransformHandPositionCoords():
                     self.frame_moving_average_queue, 
                     self.moving_average_limit
                 )
-                # if self.hand == 'left':
-                #     self.averaged_hand_frame[:, 1] *= -1
+                if self.hand == 'left':
+                    self.averaged_hand_frame[:, 0] *= -1
                 self.transformed_keypoint_publisher.pub_keypoints(self.averaged_hand_coords, 'transformed_hand_coords')
                 if data_type == 'absolute':
                     self.transformed_keypoint_publisher.pub_keypoints(self.averaged_hand_frame, 'transformed_hand_frame')
