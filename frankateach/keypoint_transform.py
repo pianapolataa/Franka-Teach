@@ -33,8 +33,8 @@ class TransformHandPositionCoords():
         else:
             data_type = 'relative'
         data_res = np.asanyarray(data[1:]).reshape(OCULUS_NUM_KEYPOINTS, 3)
-        if self.hand == 'left':
-            data_res[:, 0] *= -1
+        # if self.hand == 'left':
+        #     data_res[:, 0] *= -1
         return data_type, data_res
     
     # Function to find hand coordinates with respect to the wrist
