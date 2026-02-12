@@ -40,8 +40,11 @@ class FrankaArmOperator:
         teleoperation_reset_port = None,
         init_gripper_state='open',
         home_offset=[0, 0, -0.1],
+        hand = 'left'
     ):
         notify_component_start('franka arm operator')
+        if hand == 'left': CONTROL_PORT = CONTROL_PORT_LEFT
+        else: CONTROL_PORT = CONTROL_PORT_RIGHT
 
         # Subscribers for the transformed arm frame
         self._transformed_arm_keypoint_subscriber = ZMQKeypointSubscriber(
