@@ -18,7 +18,7 @@ def relay_worker(source_port, target_ports):
     while True:
         # Get raw data from Quest
         message = receiver.recv()
-        print("1")
+        print("received")
         
         # MANUALLY BROADCAST: Send the exact same message to EVERY pusher
         for p in pushers:
