@@ -52,8 +52,8 @@ def main(cfg):
     oculus_process_left = Process(target=start_oculus_hand_left, args=(cfg,))
     transform_process = Process(target=start_hand_transform, args=(cfg,))
     transform_process_left = Process(target=start_hand_transform_left, args=(cfg,))
-    teleop_process_left = Process(target=start_teleop_arm_left, args=(cfg,))
-    # teleop_process = Process(target=start_teleop_arm, args=(cfg,))
+    # teleop_process_left = Process(target=start_teleop_arm_left, args=(cfg,))
+    teleop_process = Process(target=start_teleop_arm, args=(cfg,))
     if cfg.use_hand_tracking:
         ruka_process = Process(target=start_teleop_hand, args=(cfg,))
         processes.append(ruka_process)
@@ -62,8 +62,8 @@ def main(cfg):
     processes.append(oculus_process_left)
     processes.append(transform_process)
     processes.append(transform_process_left)
-    processes.append(teleop_process_left)
-    # processes.append(teleop_process)
+    # processes.append(teleop_process_left)
+    processes.append(teleop_process)
 
     for p in processes:
         p.start()
