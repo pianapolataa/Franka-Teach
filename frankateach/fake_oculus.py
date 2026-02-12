@@ -2,27 +2,42 @@
 import zmq
 import time
 import pickle
+import numpy as np
 from frankateach.constants import *
-
-# Load data
-with open("oculus_data.pkl", "rb") as f:
-    data = pickle.load(f)
 
 context = zmq.Context()
 
+# Using 127.0.0.1 if testing on the same machine as the relay
+# or keep INTERNAL_IP if you want to test the network card
+TARGET_IP = INTERNAL_IP
+
 socket_raw = context.socket(zmq.PUSH)
-socket_raw.connect(f"tcp://{INTERNAL_IP}:8087")
+socket_raw.connect(f"tcp://{TARGET_IP}:8087")
 
 socket_button = context.socket(zmq.PUSH)
-socket_button.connect(f"tcp://{INTERNAL_IP}:8095")
+socket_button.connect(f"tcp://{TARGET_IP}:8095")
 
 socket_pause = context.socket(zmq.PUSH)
-socket_pause.connect(f"tcp://{INTERNAL_IP}:8100")
+socket_pause.connect(f"tcp://{TARGET_IP}:8100")
 
+print(f"Starting fake sender. Sending to {TARGET_IP}...")
+dummy_keypoints = np.ones(21 * 3).astype(np.float32).tobytes() 
+dummy_button = pickle.dumps({"button_pressed": True}, protocol=-1)
+dummy_pause = pickle.dumps({"paused": False}, protocol=-1)
+
+count = 0
 while True:
-    for msg in data:
-        socket_raw.send(msg["raw_keypoints"])
-        socket_button.send(msg["button_feedback"])
-        socket_pause.send(msg["pause_status"])
-        print(msg)
-        time.sleep(1 / 30)  # Match your VR frequency (e.g., 30Hz)
+    try:
+        # Send the dummy data
+        socket_raw.send(dummy_keypoints)
+        socket_button.send(dummy_button)
+        socket_pause.send(dummy_pause)
+        
+        count += 1
+        print(f"Sent packet batch {count}")
+        
+        time.sleep(1 / 30)  # 30Hz
+    except KeyboardInterrupt:
+        break
+
+print("Fake sender stopped.")
