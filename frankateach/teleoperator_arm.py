@@ -78,6 +78,7 @@ class FrankaArmOperator:
         )
         self.start_teleop = False
         self.init_affine = None
+        self.pause_flag=1
 
         # if  home_offset is None:
         #     home_offset = [-0.22, 0.0, 0.1]
