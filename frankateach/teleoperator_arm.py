@@ -70,8 +70,8 @@ class FrankaArmOperator:
         )
 
         self.action_socket = create_request_socket(LOCALHOST, CONTROL_PORT)
-        self.state_socket = ZMQKeypointPublisher(LOCALHOST, STATE_PORT)
-        self.commanded_state_socket = ZMQKeypointPublisher(LOCALHOST, COMMANDED_STATE_PORT)
+        # self.state_socket = ZMQKeypointPublisher(LOCALHOST, STATE_PORT)
+        # self.commanded_state_socket = ZMQKeypointPublisher(LOCALHOST, COMMANDED_STATE_PORT)
 
   # Class variables
         # self._save_states = save_states
@@ -397,7 +397,7 @@ class FrankaArmOperator:
             self.action_socket.send(b"get_state")
             robot_state_before_action = pickle.loads(self.action_socket.recv())
             robot_state_before_action.start_teleop = self.start_teleop
-            self.state_socket.pub_keypoints(robot_state_before_action, "robot_state")
+            # self.state_socket.pub_keypoints(robot_state_before_action, "robot_state")
             
             rotated_frame = self._rotate_frame(np.pi, moving_wrist)
             rotated_frame = self._orthonormalize_frame(rotated_frame)
@@ -476,7 +476,7 @@ class FrankaArmOperator:
             reset=False,
             timestamp=time.time(),
         )
-        self.commanded_state_socket.pub_keypoints(expert_action, "commanded_robot_state")
+        # self.commanded_state_socket.pub_keypoints(expert_action, "commanded_robot_state")
 
         if self.start_teleop: 
             self.action_socket.send(bytes(pickle.dumps(action, protocol=-1)))
