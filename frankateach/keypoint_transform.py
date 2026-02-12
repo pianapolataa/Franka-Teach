@@ -33,8 +33,8 @@ class TransformHandPositionCoords():
         else:
             data_type = 'relative'
         data_res = np.asanyarray(data[1:]).reshape(OCULUS_NUM_KEYPOINTS, 3)
-        if self.hand == 'left':
-            data_res[:, 0] *= -1
+        # if self.hand == 'left':
+        #     data_res[:, 0] *= -1
         return data_type, data_res
     
     # Function to find hand coordinates with respect to the wrist
@@ -46,6 +46,11 @@ class TransformHandPositionCoords():
         palm_normal = normalize_vector(np.cross(index_knuckle_coord, pinky_knuckle_coord))   # Current Z
         palm_direction = normalize_vector(index_knuckle_coord + pinky_knuckle_coord)         # Current Y
         cross_product = normalize_vector(np.cross(palm_direction, palm_normal))              # Current X
+
+        if self.hand == 'left':
+            palm_normal = normalize_vector(np.cross(pinky_knuckle_coord, index_knuckle_coord))   # Current Z
+            palm_direction = normalize_vector(index_knuckle_coord + pinky_knuckle_coord)         # Current Y
+            cross_product = normalize_vector(np.cross(palm_normal, palm_direction))              # Current X
         return [cross_product, palm_direction, palm_normal]
 
     def _get_ordered_joints(self, projected_translated_coords):
@@ -70,6 +75,10 @@ class TransformHandPositionCoords():
         palm_direction = normalize_vector(index_knuckle_coord + pinky_knuckle_coord)         # Unity space - Z
         cross_product = normalize_vector(index_knuckle_coord - pinky_knuckle_coord)              # Unity space - X
         
+        if self.hand == 'left':
+            palm_normal = normalize_vector(np.cross(pinky_knuckle_coord, index_knuckle_coord))   # Unity space - Y
+            palm_direction = normalize_vector(index_knuckle_coord + pinky_knuckle_coord)         # Unity space - Z
+            cross_product = normalize_vector(index_knuckle_coord - pinky_knuckle_coord)              # Unity space - X
         return [origin_coord, cross_product, palm_normal, palm_direction]
 
     def transform_keypoints(self, hand_coords):
