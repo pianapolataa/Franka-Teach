@@ -2,7 +2,7 @@ import numpy as np
 
 # Network constants
 LOCALHOST = 'localhost' # '127.0.0.1' # '0.0.0.0' # "localhost"
-INTERNAL_IP =  "172.24.71.236" # "100.82.146.36" # "172.24.71.240"
+INTERNAL_IP =  "10.21.85.38" # "100.82.146.36" # "172.24.71.240"
 PUBLIC_IP = "100.94.192.118"
 CAM_PORT = 10005
 VR_CONTROLLER_STATE_PORT = 8889
@@ -19,7 +19,7 @@ STATE_TOPIC = "state"
 CONTROL_TOPIC = "control"
 
 # VR constants
-VR_TCP_HOST = "10.21.121.254"# "10.19.225.15" # "10.21.7.174" # "10.19.225.15"
+VR_TCP_HOST = "10.21.85.38"# "10.19.225.15" # "10.21.7.174" # "10.19.225.15"
 VR_TCP_PORT = 5555
 VR_CONTROLLER_TOPIC = b"oculus_controller"
 

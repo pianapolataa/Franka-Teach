@@ -6,9 +6,6 @@ import numpy as np
 from frankateach.constants import *
 
 context = zmq.Context()
-
-# Using 127.0.0.1 if testing on the same machine as the relay
-# or keep INTERNAL_IP if you want to test the network card
 TARGET_IP = INTERNAL_IP
 
 socket_raw = context.socket(zmq.PUSH)
