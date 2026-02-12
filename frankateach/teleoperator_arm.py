@@ -49,6 +49,12 @@ class FrankaArmOperator:
             port=transformed_keypoints_port,
             topic='transformed_hand_frame'
         )
+
+        self._transformed_hand_keypoint_subscriber = ZMQKeypointSubscriber(
+            host=LOCALHOST,
+            port=transformed_keypoints_port,
+            topic='transformed_hand_coords'
+        )
         
         self.resolution_scale = 1 # NOTE: Get this from a socket
         self.arm_teleop_state = ARM_TELEOP_STOP # We will start as the cont
@@ -287,7 +293,7 @@ class FrankaArmOperator:
         return pause_state,pause_status,pause_left
     
     def get_pause_state_from_hand_keypoints(self):
-        transformed_hand_coords= self._transformed_arm_keypoint_subscriber.recv_keypoints()
+        transformed_hand_coords= self._transformed_hand_keypoint_subscriber.recv_keypoints()
         print(transformed_hand_coords)
         ring_distance = np.linalg.norm(transformed_hand_coords[3][4]- transformed_hand_coords[0][4])
         middle_distance = np.linalg.norm(transformed_hand_coords[2][4]- transformed_hand_coords[0][4])
