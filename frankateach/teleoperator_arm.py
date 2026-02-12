@@ -351,6 +351,7 @@ class FrankaArmOperator:
             while  wrist_state is None:
                 wrist_state = self._get_hand_frame()
                 return None
+            print(wrist_state)
             
             rotated_frame = self._rotate_frame(np.pi, wrist_state)
             rotated_frame = self._orthonormalize_frame(rotated_frame)
