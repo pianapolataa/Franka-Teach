@@ -117,7 +117,8 @@ class TransformHandPositionCoords():
                     self.frame_moving_average_queue, 
                     self.moving_average_limit
                 )
-                print(self.averaged_hand_frame)
+                if self.hand == 'left':
+                    print(self.averaged_hand_frame)
                 self.transformed_keypoint_publisher.pub_keypoints(self.averaged_hand_coords, 'transformed_hand_coords')
                 if data_type == 'absolute':
                     self.transformed_keypoint_publisher.pub_keypoints(self.averaged_hand_frame, 'transformed_hand_frame')
