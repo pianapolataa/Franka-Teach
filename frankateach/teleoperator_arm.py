@@ -385,7 +385,7 @@ class FrankaArmOperator:
     
 
         if self.start_teleop:
-            return
+            # return
             moving_wrist = self._get_hand_frame()
             while (moving_wrist is None):
                 moving_wrist = self._get_hand_frame()
