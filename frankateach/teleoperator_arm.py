@@ -60,13 +60,6 @@ class FrankaArmOperator:
             topic = 'button'
         )
 
-        # Continuous or stop teleoperation
-        self._arm_teleop_state_subscriber = ZMQKeypointSubscriber(
-            host = LOCALHOST, 
-            port = teleoperation_reset_port,
-            topic = 'pause'
-        )
-        
         self.action_socket = create_request_socket(LOCALHOST, CONTROL_PORT)
         self.state_socket = ZMQKeypointPublisher(LOCALHOST, STATE_PORT)
         self.commanded_state_socket = ZMQKeypointPublisher(LOCALHOST, COMMANDED_STATE_PORT)
@@ -91,16 +84,7 @@ class FrankaArmOperator:
             robot_init_cart = self._homo2cart(self.robot_init_H)
             self.comp_filter = Filter(robot_init_cart, comp_ratio=0.8)
          
-            
-# Get the teleop state (Pause or Continue)
-    def _get_arm_teleop_state(self):
-        reset_stat = self._arm_teleop_state_subscriber.recv_keypoints()
-        print(reset_stat)
-        if reset_stat:
-            reset_stat = np.asanyarray(reset_stat).reshape(1)[0] # Make sure this data is one dimensional
-        else:
-            return ARM_TELEOP_STOP
-        return reset_stat
+        
     
     def _orthonormalize_frame(self, frame):
         """
@@ -296,11 +280,33 @@ class FrankaArmOperator:
         quat = quat / np.linalg.norm(quat)
         self._last_quat = quat.copy()
         return quat
+    
+    def _get_arm_teleop_state_from_hand_keypoints(self):
+        pause_state ,pause_status,pause_left =self.get_pause_state_from_hand_keypoints()
+        pause_status =np.asanyarray(pause_status).reshape(1)[0] 
+        return pause_state,pause_status,pause_left
+    
+    def get_pause_state_from_hand_keypoints(self):
+        transformed_hand_coords= self._transformed_arm_keypoint_subscriber.recv_keypoints()
+        ring_distance = np.linalg.norm(transformed_hand_coords[OCULUS_JOINTS['ring'][-1]]- transformed_hand_coords[OCULUS_JOINTS['thumb'][-1]])
+        middle_distance = np.linalg.norm(transformed_hand_coords[OCULUS_JOINTS['middle'][-1]]- transformed_hand_coords[OCULUS_JOINTS['thumb'][-1]])
+        thresh = 0.04
+        pause_left= True
+        if ring_distance < thresh or middle_distance < thresh:
+            self.pause_cnt+=1
+            if self.pause_cnt==1:
+                self.prev_pause_flag=self.pause_flag
+                self.pause_flag = not self.pause_flag       
+        else:
+            self.pause_cnt=0
+        pause_state = np.asanyarray(self.pause_flag).reshape(1)[0]
+        pause_status= False  
+        if pause_state!= self.prev_pause_flag:
+            pause_status= True 
+        return pause_state , pause_status , pause_left
 
     def _apply_retargeted_angles(self) -> None:
-        arm_teleop_state = self._get_arm_teleop_state()
-        arm_teleoperation_scale_mode = self._get_resolution_scale_mode()
-        print("entering apply retargeted", arm_teleop_state , self.start_teleop, arm_teleop_state)
+        arm_teleop_state, _, _ = self._get_arm_teleop_state_from_hand_keypoints()
         if arm_teleop_state ==  ARM_TELEOP_CONT:
             self.start_teleop = True
             
@@ -320,6 +326,7 @@ class FrankaArmOperator:
                 robot_state.pos,
             )
 
+        arm_teleoperation_scale_mode = self._get_resolution_scale_mode()
         if arm_teleoperation_scale_mode == ARM_HIGH_RESOLUTION:
             self.resolution_scale = 1
         elif arm_teleoperation_scale_mode == ARM_LOW_RESOLUTION:
