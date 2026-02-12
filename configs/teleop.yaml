@@ -52,12 +52,14 @@ hand_transform:
   _target_: frankateach.keypoint_transform.TransformHandPositionCoords
   keypoint_port: ${keypoint_port}  # keypoint receive port
   transformation_port: ${transformed_position_keypoint_port} # publish transformed keypoint
+  hand: 'right'
   moving_average_limit: 1
 
 hand_transform_left:
   _target_: frankateach.keypoint_transform.TransformHandPositionCoords
   keypoint_port: ${keypoint_port_left}  # keypoint receive port
   transformation_port: ${transformed_position_keypoint_port_left} # publish transformed keypoint
+  hand: 'left'
   moving_average_limit: 1
 
 stick_operators:

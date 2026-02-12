@@ -8,8 +8,9 @@ from ruka_hand.utils.constants import HAND_JOINTS
 import h5py
 
 class TransformHandPositionCoords():
-    def __init__(self, keypoint_port, transformation_port,moving_average_limit = 5):
+    def __init__(self, keypoint_port, transformation_port, hand, moving_average_limit = 5):
         notify_component_start('keypoint position transform')
+        self.hand = hand
         
         # Initializing the subscriber for right hand keypoints
         self.original_keypoint_subscriber = ZMQKeypointSubscriber(LOCALHOST, keypoint_port, 'right')
@@ -31,7 +32,10 @@ class TransformHandPositionCoords():
             data_type = 'absolute'
         else:
             data_type = 'relative'
-        return data_type, np.asanyarray(data[1:]).reshape(OCULUS_NUM_KEYPOINTS, 3)
+        data_res = np.asanyarray(data[1:]).reshape(OCULUS_NUM_KEYPOINTS, 3)
+        if self.hand == 'left':
+            data_res[:, 0] *= -1
+        return data_type, data_res
     
     # Function to find hand coordinates with respect to the wrist
     def _translate_coords(self, hand_coords):
