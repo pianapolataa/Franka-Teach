@@ -79,7 +79,7 @@ class TransformHandPositionCoords():
             palm_normal = normalize_vector(np.cross(pinky_knuckle_coord, index_knuckle_coord))   # Unity space - Y
             palm_direction = normalize_vector(index_knuckle_coord + pinky_knuckle_coord)         # Unity space - Z
             cross_product = normalize_vector(index_knuckle_coord - pinky_knuckle_coord)              # Unity space - X
-        return [origin_coord, cross_product, palm_normal, -palm_direction]
+        return [origin_coord, cross_product, palm_normal, palm_direction]
 
     def transform_keypoints(self, hand_coords):
         translated_coords = self._translate_coords(hand_coords)
@@ -126,8 +126,8 @@ class TransformHandPositionCoords():
                     self.frame_moving_average_queue, 
                     self.moving_average_limit
                 )
-                if self.hand == 'left':
-                    self.averaged_hand_frame[1] *= -1
+                # if self.hand == 'left':
+                #     self.averaged_hand_frame[1] *= -1
                 self.transformed_keypoint_publisher.pub_keypoints(self.averaged_hand_coords, 'transformed_hand_coords')
                 if data_type == 'absolute':
                     self.transformed_keypoint_publisher.pub_keypoints(self.averaged_hand_frame, 'transformed_hand_frame')
