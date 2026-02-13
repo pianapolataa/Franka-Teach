@@ -428,6 +428,7 @@ class FrankaArmOperator:
                 relative_affine_offset = self.comp_filter(relative_affine_offset)
             # print("home_pose", self.home_pos)
             relative_pos = relative_affine_offset[:3, 3]
+            relative_pos[1] *= -1
             relative_rot = relative_affine[:3, :3]
 
             # incorporate hand rotation compensation 
