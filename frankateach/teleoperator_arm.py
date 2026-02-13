@@ -83,6 +83,7 @@ class FrankaArmOperator:
         self.init_affine = None
         self.pause_flag=1
         self.prev_pause_flag=0
+        self.hand = hand
 
         # if  home_offset is None:
         #     home_offset = [-0.22, 0.0, 0.1]
@@ -344,7 +345,9 @@ class FrankaArmOperator:
         elif arm_teleoperation_scale_mode == ARM_LOW_RESOLUTION:
             self.resolution_scale = 0.6
             
-        print("first:", self.is_first_frame)
+        offset_rot_angle = 0
+        if self.hand == 'right':
+            offset_rot_angle = np.pi
         if self.is_first_frame:
             self.cnt = 0
             wrist_state = self._get_hand_frame()
@@ -355,7 +358,7 @@ class FrankaArmOperator:
             rotated_frame = self._rotate_frame(np.pi, wrist_state)
             rotated_frame = self._orthonormalize_frame(rotated_frame)
             self.hand_init_H = self._turn_frame_to_homo_mat(rotated_frame)
-            offset_frame = self._rotate_frame(0, wrist_state)
+            offset_frame = self._rotate_frame(offset_rot_angle, wrist_state)
             offset_frame = self._orthonormalize_frame(offset_frame)
             self.hand_init_offset_H = self._turn_frame_to_homo_mat(offset_frame)
             # self.hand_init_offset_H = self._turn_frame_to_homo_mat(wrist_state)
@@ -402,7 +405,7 @@ class FrankaArmOperator:
             rotated_frame = self._rotate_frame(np.pi, moving_wrist)
             rotated_frame = self._orthonormalize_frame(rotated_frame)
             self.hand_moving_H = self._turn_frame_to_homo_mat(rotated_frame)
-            offset_frame = self._rotate_frame(0, moving_wrist)
+            offset_frame = self._rotate_frame(offset_rot_angle, moving_wrist)
             offset_frame = self._orthonormalize_frame(offset_frame)
             self.hand_moving_offset_H = self._turn_frame_to_homo_mat(offset_frame)
 
