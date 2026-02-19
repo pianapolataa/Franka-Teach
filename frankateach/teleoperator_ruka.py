@@ -101,9 +101,6 @@ class RukaOperator:
             
         if self.is_first_frame:
             # reset hand positiion
-            hand = Hand(self.hand_type)
-            print("hand")
-            print(type(hand))
             time.sleep(0.5)
             self.handler.reset()
             self.is_first_frame = False
