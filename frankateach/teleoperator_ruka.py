@@ -81,6 +81,7 @@ class RukaOperator:
     def _init_hand(self):
         self.handler = DexRukav2Handler(urdf_path="/home_shared/grail_sissi/BAKU/baku/vr-hand-tracking/Franka-Teach/RUKA/assets/robot.urdf", config_path="/home_shared/grail_sissi/BAKU/baku/vr-hand-tracking/Franka-Teach/RUKA/assets/dex_retarget.yml")
         self.cnt = 0
+        print("init")
     
     def _apply_retargeted_angles(self) -> None:
         arm_teleop_state = self._get_arm_teleop_state()
@@ -113,11 +114,11 @@ class RukaOperator:
             motor_positions = self.handler.get_command(transformed_hand_coords)
             if motor_positions is None:
                 return None
-            if motor_positions[7] < 2100:
-                self.close = True
-            if self.close:
-                motor_positions[7] = 1950
-            print(motor_positions[7])
+            # if motor_positions[7] < 2100:
+            #     self.close = True
+            # if self.close:
+            #     motor_positions[7] = 1950
+            # print(motor_positions[7])
             ##
             # if self.cnt % 3 == 0:
             #     motor_positions += np.random.normal(0, 40, size=16)
