@@ -137,15 +137,27 @@ class Robot(FrankaInterface):
     ):
         
         print("start pos called")
+        ## v1 start pos
         start_joint_pos = [
             0.09162008114028396,
-            0.17,
+            0.27,
             -0.01990020486871322,
             -2.4732269941140346,
             -0.01307073642274261,
             3.37,
             0.17,
         ]
+
+        ## v2 start position
+        # start_joint_pos = [
+        #     0.09162008114028396,
+        #     -0.19826458111314524,
+        #     -0.01990020486871322,
+        #     -2.4732269941140346,
+        #     -0.01307073642274261,
+        #     2.30396583422025,
+        #     0.17,
+        # ]
         assert type(start_joint_pos) is list or type(start_joint_pos) is np.ndarray
         controller_cfg = get_default_controller_config(controller_type="JOINT_POSITION")
 
