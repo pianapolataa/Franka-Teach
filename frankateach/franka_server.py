@@ -143,7 +143,7 @@ class Robot(FrankaInterface):
             -0.01990020486871322,
             -2.4732269941140346,
             -0.01307073642274261,
-            1.30396583422025,
+            3.0,
             0.17,
         ]
         assert type(start_joint_pos) is list or type(start_joint_pos) is np.ndarray
