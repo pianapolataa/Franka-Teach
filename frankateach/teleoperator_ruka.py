@@ -21,7 +21,7 @@ from ruka_hand.utils.timer import FrequencyTimer
 from ruka_hand.utils.zmq import ZMQPublisher, create_pull_socket
 from ruka_hand.utils.trajectory import move_to_pos
 from ruka_hand.control.hand import Hand
-from ruka_hand.control.controller_retarget_v1 import DexRukav2Handler
+from ruka_hand.control.controller_retarget import DexRukav2Handler
 
 np.set_printoptions(precision=2, suppress=True)
 
