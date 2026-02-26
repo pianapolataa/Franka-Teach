@@ -77,7 +77,7 @@ class FrankaArmOperator:
         self.gripper_state = (
             GRIPPER_OPEN if init_gripper_state == "open" else GRIPPER_CLOSE
         )
-        self.start_teleop = False
+        self.start_teleop = True ##
         self.init_affine = None
 
         # if  home_offset is None:
