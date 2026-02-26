@@ -327,18 +327,18 @@ class FrankaArmOperator:
             
         if self.is_first_frame:
             self.cnt = 0
-            wrist_state = self._get_hand_frame()
-            while  wrist_state is None:
-                wrist_state = self._get_hand_frame()
-                return None
+            ##
+            # wrist_state = self._get_hand_frame()
+            # while  wrist_state is None:
+            #     wrist_state = self._get_hand_frame()
+            #     return None
             
-            rotated_frame = self._rotate_frame(np.pi, wrist_state)
-            rotated_frame = self._orthonormalize_frame(rotated_frame)
-            self.hand_init_H = self._turn_frame_to_homo_mat(rotated_frame)
-            offset_frame = self._rotate_frame(np.pi * 3 / 2, wrist_state)
-            offset_frame = self._orthonormalize_frame(offset_frame)
-            self.hand_init_offset_H = self._turn_frame_to_homo_mat(offset_frame)
-            # self.hand_init_offset_H = self._turn_frame_to_homo_mat(wrist_state)
+            # rotated_frame = self._rotate_frame(np.pi, wrist_state)
+            # rotated_frame = self._orthonormalize_frame(rotated_frame)
+            # self.hand_init_H = self._turn_frame_to_homo_mat(rotated_frame)
+            # offset_frame = self._rotate_frame(np.pi * 3 / 2, wrist_state)
+            # offset_frame = self._orthonormalize_frame(offset_frame)
+            # self.hand_init_offset_H = self._turn_frame_to_homo_mat(offset_frame)
 
             print("Resetting robot..")
             action = FrankaAction(
