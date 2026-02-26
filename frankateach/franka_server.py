@@ -139,7 +139,7 @@ class Robot(FrankaInterface):
         print("start pos called")
         start_joint_pos = [
             0.09162008114028396,
-            -0,
+            0.17,
             -0.01990020486871322,
             -2.4732269941140346,
             -0.01307073642274261,
