@@ -80,6 +80,7 @@ class RukaOperator:
         return reset_stat
 
     def _init_hand(self):
+        print(self.hand_type)
         if self.hand_type == "right":
             self.handler = DexRukav2Handler(urdf_path="/home_shared/grail_sissi/BAKU/baku/vr-hand-tracking/Franka-Teach/RUKA/assets/robot.urdf", config_path="/home_shared/grail_sissi/BAKU/baku/vr-hand-tracking/Franka-Teach/RUKA/assets/dex_retarget.yml")
         else:
