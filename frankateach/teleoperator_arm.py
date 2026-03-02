@@ -346,7 +346,7 @@ class FrankaArmOperator:
             self.resolution_scale = 0.6
             
         offset_rot_angle = 0
-        if self.hand == 'left':
+        if self.hand == 'right':
             offset_rot_angle = np.pi
         if self.is_first_frame:
             self.cnt = 0
