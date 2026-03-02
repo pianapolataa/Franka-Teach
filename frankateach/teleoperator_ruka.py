@@ -54,7 +54,7 @@ class RukaOperator:
         # self.commanded_state_socket = ZMQKeypointPublisher(LOCALHOST, COMMANDED_STATE_PORT)
 
         self.is_first_frame = True
-        self.start_teleop = False
+        self.start_teleop = True
         self.init_affine = None
 
         # self.home_offset = (
