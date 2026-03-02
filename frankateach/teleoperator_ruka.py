@@ -22,6 +22,7 @@ from ruka_hand.utils.zmq import ZMQPublisher, create_pull_socket
 from ruka_hand.utils.trajectory import move_to_pos
 from ruka_hand.control.hand import Hand
 from ruka_hand.control.controller_retarget import DexRukav2Handler
+from ruka_hand.control.controller_retarget_left import DexRukav2HandlerLeft
 
 np.set_printoptions(precision=2, suppress=True)
 
@@ -34,6 +35,7 @@ class RukaOperator:
     ):
         notify_component_start('franka arm operator')
         # Subscribers for the transformed hand keypoints
+        self.hand_type = hand_type
         print("create subscriber", LOCALHOST, transformed_keypoints_port)
         self._transformed_hand_keypoint_subscriber = ZMQKeypointSubscriber(
             host=LOCALHOST,
@@ -78,7 +80,10 @@ class RukaOperator:
         return reset_stat
 
     def _init_hand(self):
-        self.handler = DexRukav2Handler(urdf_path="/home_shared/grail_sissi/BAKU/baku/vr-hand-tracking/Franka-Teach/RUKA/assets/robot.urdf", config_path="/home_shared/grail_sissi/BAKU/baku/vr-hand-tracking/Franka-Teach/RUKA/assets/dex_retarget.yml")
+        if self.hand_type == "right":
+            self.handler = DexRukav2Handler(urdf_path="/home_shared/grail_sissi/BAKU/baku/vr-hand-tracking/Franka-Teach/RUKA/assets/robot.urdf", config_path="/home_shared/grail_sissi/BAKU/baku/vr-hand-tracking/Franka-Teach/RUKA/assets/dex_retarget.yml")
+        else:
+            self.handler = DexRukav2HandlerLeft(urdf_path="/home_shared/grail_sissi/BAKU/baku/vr-hand-tracking/Franka-Teach/RUKA/assets/robot.urdf", config_path="/home_shared/grail_sissi/BAKU/baku/vr-hand-tracking/Franka-Teach/RUKA/assets/dex_retarget.yml")
         self.cnt = 0
     
     def _apply_retargeted_angles(self) -> None:

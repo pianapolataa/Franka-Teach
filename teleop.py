@@ -41,7 +41,9 @@ def start_teleop_arm_left(cfg):
 def start_teleop_hand(cfg):
     ruka = instantiate(cfg.ruka_operators)
     ruka.stream()
-
+def start_teleop_hand_left(cfg):
+    ruka = instantiate(cfg.ruka_operators_left)
+    ruka.stream()
 
 
 @hydra.main(version_base="1.2", config_path="configs", config_name="teleop")
@@ -56,7 +58,9 @@ def main(cfg):
     teleop_process = Process(target=start_teleop_arm, args=(cfg,))
     if cfg.use_hand_tracking:
         ruka_process = Process(target=start_teleop_hand, args=(cfg,))
+        ruka_process_left = Process(target=start_teleop_hand_left, args=(cfg,))
         processes.append(ruka_process)
+        processes.append(ruka_process_left)
     
     processes.append(oculus_process)
     processes.append(oculus_process_left)
