@@ -1,6 +1,6 @@
-# Ports SHOULD NOT BE CHANGED (defined in Unity)
-oculus_port: 8087 # Get raw keypoint
-oculus_port_left: 8110
+# Ports SHOULD NOT BE CHANGED (defined in Unity)， these are flipped left/reight
+oculus_port: 8110 # Get raw keypoint
+oculus_port_left: 8087
 resolution_button_port:  8095
 teleop_reset_port: 8100
 oculus_graph_port: 15001
@@ -91,8 +91,8 @@ arm_operators_left:
   
 ruka_operators:
     _target_: frankateach.teleoperator_ruka.RukaOperator
-    transformed_keypoints_port: ${transformed_position_keypoint_port} # transformed keypoint port
-    teleoperation_reset_port: ${teleop_reset_publish_port}
+    transformed_keypoints_port: ${transformed_position_keypoint_port_left} # transformed keypoint port
+    teleoperation_reset_port: ${teleop_reset_publish_port_left}
     hand_type: "right"
 
 ruka_operators_left:
