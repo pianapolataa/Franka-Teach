@@ -129,7 +129,7 @@ class RukaOperator:
   
 
     def stream(self):
-        notify_component_start("Franka teleoperator control")
+        notify_component_start("RUKA teleoperator control")
         print("Start controlling the robot hand using the Oculus Headset.\n")
         self._init_hand()
         try:
