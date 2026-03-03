@@ -93,10 +93,10 @@ ruka_operators:
     _target_: frankateach.teleoperator_ruka.RukaOperator
     transformed_keypoints_port: ${transformed_position_keypoint_port_left} # transformed keypoint port
     teleoperation_reset_port: ${teleop_reset_publish_port_left}
-    hand_type: "left"
+    hand_type: "right"
 
 ruka_operators_left:
   _target_: frankateach.teleoperator_ruka.RukaOperator
   transformed_keypoints_port: ${transformed_position_keypoint_port} # transformed keypoint port
   teleoperation_reset_port: ${teleop_reset_publish_port}
-  hand_type: "right"
+  hand_type: "left"
