@@ -319,31 +319,31 @@ class FrankaArmOperator:
         return pause_state , pause_status , pause_left
 
     def _apply_retargeted_angles(self) -> None:
-        arm_teleop_state, _, _ = self._get_arm_teleop_state_from_hand_keypoints()
-        if arm_teleop_state ==  ARM_TELEOP_CONT:
-            self.start_teleop = True
+        # arm_teleop_state, _, _ = self._get_arm_teleop_state_from_hand_keypoints()
+        # if arm_teleop_state ==  ARM_TELEOP_CONT:
+        #     self.start_teleop = True
             
-        if arm_teleop_state ==  ARM_TELEOP_STOP:
-            self.start_teleop = False
-            self.hand_init_H = None
-            self.hand_init_offset_H = None
-            # receive the robot state
-            self.action_socket.send(b"get_state")
-            robot_state: FrankaState = pickle.loads(self.action_socket.recv())
-            if robot_state == b"state_error":
-                print("Error getting robot state")
-                return
+        # if arm_teleop_state ==  ARM_TELEOP_STOP:
+        #     self.start_teleop = False
+        #     self.hand_init_H = None
+        #     self.hand_init_offset_H = None
+        #     # receive the robot state
+        #     self.action_socket.send(b"get_state")
+        #     robot_state: FrankaState = pickle.loads(self.action_socket.recv())
+        #     if robot_state == b"state_error":
+        #         print("Error getting robot state")
+        #         return
 
-            self.home_rot, self.home_pos = (
-                transform_utils.quat2mat(robot_state.quat),
-                robot_state.pos,
-            )
+        #     self.home_rot, self.home_pos = (
+        #         transform_utils.quat2mat(robot_state.quat),
+        #         robot_state.pos,
+        #     )
 
-        arm_teleoperation_scale_mode = self._get_resolution_scale_mode()
-        if arm_teleoperation_scale_mode == ARM_HIGH_RESOLUTION:
-            self.resolution_scale = 1
-        elif arm_teleoperation_scale_mode == ARM_LOW_RESOLUTION:
-            self.resolution_scale = 0.6
+        # arm_teleoperation_scale_mode = self._get_resolution_scale_mode()
+        # if arm_teleoperation_scale_mode == ARM_HIGH_RESOLUTION:
+        #     self.resolution_scale = 1
+        # elif arm_teleoperation_scale_mode == ARM_LOW_RESOLUTION:
+        #     self.resolution_scale = 0.6
             
         offset_rot_angle = 0
         if self.hand == 'left':
