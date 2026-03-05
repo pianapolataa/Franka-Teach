@@ -21,7 +21,7 @@ from ruka_hand.utils.timer import FrequencyTimer
 from ruka_hand.utils.zmq import ZMQPublisher, create_pull_socket
 from ruka_hand.utils.trajectory import move_to_pos
 from ruka_hand.control.hand import Hand
-from ruka_hand.control.controller_retarget_v1 import DexRukav2Handler
+from ruka_hand.control.controller_retarget import DexRukav2Handler
 
 np.set_printoptions(precision=2, suppress=True)
 
@@ -79,8 +79,8 @@ class RukaOperator:
         return reset_stat
 
     def _init_hand(self):
-        # self.handler = DexRukav2Handler(urdf_path="/home_shared/grail_sissi/BAKU/baku/vr-hand-tracking/Franka-Teach/RUKA/assets/robot.urdf", config_path="/home_shared/grail_sissi/BAKU/baku/vr-hand-tracking/Franka-Teach/RUKA/assets/dex_retarget.yml")
-        self.handler = DexRukav2Handler(urdf_path="/home_shared/grail_sissi/BAKU/baku/vr-hand-tracking/Franka-Teach/RUKA/assets_v1/Hand_Assembly_URDF.urdf", config_path="/home_shared/grail_sissi/BAKU/baku/vr-hand-tracking/Franka-Teach/RUKA/assets_v1/dex_retarget_v1.yml")
+        self.handler = DexRukav2Handler(urdf_path="/home_shared/grail_sissi/BAKU/baku/vr-hand-tracking/Franka-Teach/RUKA/assets/robot.urdf", config_path="/home_shared/grail_sissi/BAKU/baku/vr-hand-tracking/Franka-Teach/RUKA/assets/dex_retarget.yml")
+        # self.handler = DexRukav2Handler(urdf_path="/home_shared/grail_sissi/BAKU/baku/vr-hand-tracking/Franka-Teach/RUKA/assets_v1/Hand_Assembly_URDF.urdf", config_path="/home_shared/grail_sissi/BAKU/baku/vr-hand-tracking/Franka-Teach/RUKA/assets_v1/dex_retarget_v1.yml")
         self.cnt = 0
         print("init")
     
@@ -112,10 +112,10 @@ class RukaOperator:
             motor_positions = self.handler.get_command(transformed_hand_coords)
             if motor_positions is None:
                 return None
-            # if motor_positions[7] < 2100:
-            #     self.close = True
-            # if self.close:
-            #     motor_positions[7] = 1950
+            if motor_positions[7] < 2100:
+                self.close = True
+            if self.close:
+                motor_positions[7] = 1900
             # print(motor_positions[7])
             ##
             # if self.cnt % 3 == 0:
