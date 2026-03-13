@@ -149,7 +149,7 @@ class Robot(FrankaInterface):
                 -2.4732269941140346,
                 -0.01307073642274261,
                 2.30396583422025,
-                0.37,
+                0.67,
             ]
         else:
             start_joint_pos = [
