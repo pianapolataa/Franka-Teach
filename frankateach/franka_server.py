@@ -24,15 +24,14 @@ class FrankaServer:
     def __init__(self, cfg, hand):
         self._robot = Robot(cfg, CONTROL_FREQ)
         # Action REQ/REP
-        self.hand = hand
-        print(self.hand)
         if hand == 'left': CONTROL_PORT = CONTROL_PORT_LEFT
         else: CONTROL_PORT = CONTROL_PORT_RIGHT
         self.action_socket = create_response_socket(LOCALHOST, CONTROL_PORT)
 
-    def init_server(self):
+    def init_server(self, hand):
         # connect to robot
         print("Starting Franka server...")
+        self.hand = hand
         self._robot.reset_robot()
         self.control_daemon()
 
