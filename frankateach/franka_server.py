@@ -140,6 +140,7 @@ class Robot(FrankaInterface):
     ):
         
         print("start pos called")
+        print(self.hand)
         if self.hand == "left":
             start_joint_pos = [
                 0.09162008114028396,
@@ -158,7 +159,7 @@ class Robot(FrankaInterface):
                 -2.4732269941140346,
                 -0.01307073642274261,
                 2.30396583422025,
-                0.3,
+                0.5,
             ]
         assert type(start_joint_pos) is list or type(start_joint_pos) is np.ndarray
         controller_cfg = get_default_controller_config(controller_type="JOINT_POSITION")
