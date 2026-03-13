@@ -149,7 +149,7 @@ class Robot(FrankaInterface):
                 -2.4732269941140346,
                 -0.01307073642274261,
                 2.30396583422025,
-                0.17,
+                0.27,
             ]
         else:
             start_joint_pos = [
@@ -159,7 +159,7 @@ class Robot(FrankaInterface):
                 -2.4732269941140346,
                 -0.01307073642274261,
                 2.30396583422025,
-                -0.67,
+                -0.77,
             ]
         assert type(start_joint_pos) is list or type(start_joint_pos) is np.ndarray
         controller_cfg = get_default_controller_config(controller_type="JOINT_POSITION")
