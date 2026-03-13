@@ -22,7 +22,7 @@ CONFIG_ROOT = Path(__file__).parent / "configs"
 
 class FrankaServer:
     def __init__(self, cfg, hand):
-        self._robot = Robot(cfg, CONTROL_FREQ)
+        self._robot = Robot(cfg, CONTROL_FREQ, hand)
         # Action REQ/REP
         if hand == 'left': CONTROL_PORT = CONTROL_PORT_LEFT
         else: CONTROL_PORT = CONTROL_PORT_RIGHT
@@ -31,7 +31,6 @@ class FrankaServer:
     def init_server(self, hand):
         # connect to robot
         print("Starting Franka server...")
-        self.hand = hand
         self._robot.reset_robot()
         self.control_daemon()
 
@@ -80,7 +79,7 @@ class FrankaServer:
 
 
 class Robot(FrankaInterface):
-    def __init__(self, cfg, control_freq):
+    def __init__(self, cfg, control_freq, hand):
         super(Robot, self).__init__(
             general_cfg_file=os.path.join(CONFIG_ROOT, cfg),
             use_visualizer=False,
@@ -91,6 +90,7 @@ class Robot(FrankaInterface):
                 os.path.join(CONFIG_ROOT, "osc-pose-controller.yml")
             ).as_easydict()
         )
+        self.hand = hand
 
     def reset_robot(self):
         self.reset()
