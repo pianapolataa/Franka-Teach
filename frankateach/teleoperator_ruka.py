@@ -104,13 +104,13 @@ class RukaOperator:
 
         if self.start_teleop:
             motor_positions = self.handler.get_command(transformed_hand_coords)
-            if self.hand_type == 'right':
-                motor_positions = np.array([
-                    2815.        , 2952.39456761, 1713.66489977, 1756.        ,
-                    2857.        , 1776.45128655, 2195.        , 1776.        ,
-                    1100.81154701, 1343.81727454, 1207.        , 1402.96441607,
-                    3080.25904964, 2357.        , 1650.08004243, 1654.45926902
-                ])
+            # if self.hand_type == 'right':
+            #     motor_positions = np.array([
+            #         2815.        , 2952.39456761, 1713.66489977, 1756.        ,
+            #         2857.        , 1776.45128655, 2195.        , 1776.        ,
+            #         1100.81154701, 1343.81727454, 1207.        , 1402.96441607,
+            #         3080.25904964, 2357.        , 1650.08004243, 1654.45926902
+            #     ])
             if motor_positions is None:
                 return None
             ##
