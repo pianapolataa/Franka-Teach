@@ -355,7 +355,10 @@ class FrankaArmOperator:
                 wrist_state = self._get_hand_frame()
                 return None
             
-            rotated_frame = self._rotate_frame(3 * np.pi / 2, wrist_state)
+            if self.hand == 'right':
+                rotated_frame = self._rotate_frame(3 * np.pi / 2, wrist_state)
+            else:
+                rotated_frame = self._rotate_frame(np.pi / 2, wrist_state)
             rotated_frame = self._orthonormalize_frame(rotated_frame)
             self.hand_init_H = self._turn_frame_to_homo_mat(rotated_frame)
             offset_frame = self._rotate_frame(offset_rot_angle, wrist_state)
@@ -401,7 +404,10 @@ class FrankaArmOperator:
             robot_state_before_action.start_teleop = self.start_teleop
             # self.state_socket.pub_keypoints(robot_state_before_action, "robot_state")
             
-            rotated_frame = self._rotate_frame(3 * np.pi / 2, moving_wrist)
+            if self.hand == 'right':
+                rotated_frame = self._rotate_frame(3 * np.pi / 2, moving_wrist)
+            else:
+                rotated_frame = self._rotate_frame(np.pi / 2, moving_wrist)
             rotated_frame = self._orthonormalize_frame(rotated_frame)
             self.hand_moving_H = self._turn_frame_to_homo_mat(rotated_frame)
             offset_frame = self._rotate_frame(offset_rot_angle, moving_wrist)
