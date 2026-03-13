@@ -496,7 +496,7 @@ class FrankaArmOperator:
         try:
             while True:
                 # Retargeting function
-                print("start teleop", self.start_teleop)
+                # print("start teleop", self.start_teleop)
                 self._apply_retargeted_angles()
         except KeyboardInterrupt:
             pass
