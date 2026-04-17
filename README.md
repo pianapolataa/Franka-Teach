@@ -9,7 +9,7 @@ Bi-Manual Franka 3 robot setup.
 2. Make sure the NUC is booted with the real-time kernel [[link](https://frankaemika.github.io/docs/installation_linux.html#setting-up-the-real-time-kernel)].
 
 
-## Lambda Machine Setup
+## Workstation Machine Setup (skip if using bimanual nuc, it's already installed)
 
 todo: how to setup network, etc.
 
@@ -69,7 +69,12 @@ Host nuc
 ssh nuc
 ```
 
-2. Go to `172.16.0.4/desk` for the Franka Desk interface for the right robot and `172.16.1.4/desk` for the left robot.
+2. Run ssh tunneling: 
+```
+ssh -NL localhost:8001:192.168.100.203:443 bimanual-nuc 
+ssh -NL localhost:8000:192.168.100.202:443 bimanual-nuc
+```
+Go to localhost:8000/desk and localhost:8001/desk for the Franka Desk.
 
 The following credentials are used for the Franka Desk interface:
 
@@ -100,20 +105,15 @@ cd /home/robot-lab/work/deoxys_control/deoxys
 ./auto_scripts/auto_gripper.sh config/franka_left.yml # in a different terminal, if you want to use the gripper
 ```
 
-6. From the Lambda, start servers:
+6. From the workstation, start servers:
 
 ```bash
 cd /path/to/Franka-Teach/
-python3 franka_server.py
-python3 camera_server.py # in a different terminal
+python franka_server.py --config-name franka_server_right 
+python franka_server.py --config-name franka_server_left
+python port_split.py # Splits Oculus input to the left and right arm ports
 ```
 
-7. TODO: run franka_env test script:
-
-```bash
-cd /path/to/Franka-Teach/
-python3 test_franka_env.py
-```
 
 ## How to teleoperate
 
@@ -123,13 +123,6 @@ python3 test_franka_env.py
 2. Also, start the teleoperation script. Set the teleop mode based on if you are collecting human or robot demonstrations.:
 
 ```bash
-python3 teleop.py teleop_mode=<human/robot>
+python teleop.py 
 ```
-
-3. You can start the data collection by running the `collect_data.py` script. Set the `demo_num` to the number of demonstrations you want to collect and `collect_depth` to `True` if you want to collect depth data from the Intel realsense cameras.
-
-```bash
-python3 collect_data.py demo_num=0 collect_depth=<True/False>
-```
-
-4. For robot teleoperation, use the VR controllers to control the robot. When collecting human data, use the VR controller to start and stop the data collection while performing the actions with the human hand.
+Note: this bimanual teleop script does not have a stop control button, so make sure you have someone next to you helping stop the script.
